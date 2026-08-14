@@ -1,0 +1,112 @@
+[
+  {
+    "id": "event-01",
+    "title": "Shader Graph Masterclass",
+    "location": "Cali Studio / Presencial",
+    "time": "18:00 COT",
+    "date": "13 AGO",
+    "image": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=120&q=80",
+    "buttonText": "RSVP / Registrarse",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-02",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "13 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-03",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "14 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-04",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "15 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-05",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "16 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-06",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "17 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-07",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "18 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-08",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "19 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-09",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "20 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  },
+  {
+    "id": "event-10",
+    "title": "Optimización para VR & Mobile",
+    "location": "Univalle Meléndez",
+    "time": "16:00 COT",
+    "date": "21 AGO",
+    "image": "",
+    "buttonText": "Ver Detalle",
+    "rsvpUrl": "https://www.meetup.com/cali-unity-meetup/",
+    "status": "UPCOMING"
+  }
+]
