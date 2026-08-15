@@ -1,6 +1,7 @@
 import React from 'react';
 import projectsData from '../data/projects.json';
 import { useEvents } from '../hooks/useEvents';
+import { useAuth } from '../context/AuthContext';
 
 // Mapeo de meses en español (tal como están en tu JSON)
 const MONTHS_ES = [
@@ -17,6 +18,7 @@ const getTodayFormatted = () => {
 };
 
 export default function MainPage({ setActiveTab }) {
+  const { isLoggedIn } = useAuth();
   const { eventsData, loading } = useEvents();
 
   // 1. Obtener la fecha de hoy
@@ -131,7 +133,14 @@ export default function MainPage({ setActiveTab }) {
           </div>
 
           {/* Botón Ver Todo posicionado abajo a la derecha */}
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end mt-4 gap-4">
+            {isLoggedIn && (<button
+                onClick={() => setActiveTab && setActiveTab('event-update')}
+                className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono']  text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black  cursor-pointer flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[16px]">add</span> Nuevo Evento
+              </button>
+            )}
             <button
                 onClick={() => setActiveTab && setActiveTab('community')}
                 className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono']  text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black  cursor-pointer flex items-center gap-2"

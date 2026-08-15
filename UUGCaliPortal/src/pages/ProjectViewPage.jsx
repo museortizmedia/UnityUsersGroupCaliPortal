@@ -1,7 +1,7 @@
 import React from 'react';
 import projectsDataInfo from '../data/projects.json';
 
-export default function ViewProjectPage({
+export default function ProjectViewPage({
   projectId,
   setActiveTab,
   projectsData = projectsDataInfo,

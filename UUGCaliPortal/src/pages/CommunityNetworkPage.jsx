@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useHeader } from '../context/HeaderContext';
 import { useEvents } from '../hooks/useEvents';
 import membersDataRaw from '../data/members.json';
@@ -9,6 +9,12 @@ const organicShapes = [
     "rounded-[30%_70%_70%_30%_/_30%_30%_70%_70%]",
     "rounded-[50%_50%_20%_80%_/_25%_80%_20%_75%]"
 ];
+
+// Mapa para validar mes por texto de 3 letras (en español)
+const MONTH_MAP = {
+    ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
+    JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11
+};
 
 const membersData = membersDataRaw.map((member) => ({
     ...member,
@@ -25,8 +31,22 @@ export default function CommunityNetworkPage() {
     const [copied, setCopied] = useState(false);
     const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
 
+    // Filtrar eventos únicamente pertenecientes al mes en curso
+    const filteredEvents = useMemo(() => {
+        const currentMonthIndex = new Date().getMonth(); // 0-indexed (ej: 7 para Agosto)
+
+        return eventsData.filter((event) => {
+            if (!event.date) return false;
+            const [, monthStr] = event.date.trim().split(' ');
+            if (!monthStr) return false;
+
+            const eventMonthIndex = MONTH_MAP[monthStr.toUpperCase()];
+            return eventMonthIndex === currentMonthIndex;
+        });
+    }, [eventsData]);
+
     const EVENTS_PER_PAGE = 2;
-    const totalPages = Math.max(1, Math.ceil(eventsData.length / EVENTS_PER_PAGE));
+    const totalPages = Math.max(1, Math.ceil(filteredEvents.length / EVENTS_PER_PAGE));
 
     const handlePrev = () => {
         setPage((prevPage) => Math.max(0, prevPage - 1));
@@ -37,10 +57,9 @@ export default function CommunityNetworkPage() {
     };
 
     const startIndex = page * EVENTS_PER_PAGE;
-    const currentEvents = eventsData.slice(startIndex, startIndex + EVENTS_PER_PAGE);
+    const currentEvents = filteredEvents.slice(startIndex, startIndex + EVENTS_PER_PAGE);
 
     const handleCopyEndpoint = () => {
-        // Genera la URL completa combinando el origen y la ruta base de Vite
         const baseUrl = import.meta.env.BASE_URL.endsWith('/')
             ? import.meta.env.BASE_URL
             : `${import.meta.env.BASE_URL}/`;
@@ -56,7 +75,6 @@ export default function CommunityNetworkPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header de la sección */}
             <header className="mb-8">
                 <h1 className="font-['Space_Grotesk'] text-3xl md:text-5xl font-semibold text-black mb-4">
                     Red de la Comunidad
@@ -66,7 +84,6 @@ export default function CommunityNetworkPage() {
                 </p>
             </header>
 
-            {/* Bento Grid Layout */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 {/* Colaboradores Principales */}
                 <section className="md:col-span-8 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6 flex flex-col gap-6">
@@ -115,11 +132,11 @@ export default function CommunityNetworkPage() {
                     </div>
                 </section>
 
-                {/* Widget de Eventos */}
+                {/* Widget de Eventos del Mes */}
                 <section className="md:col-span-4 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6 flex flex-col h-full">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black">
-                            Eventos
+                            Eventos del Mes
                         </h2>
                         <div className="flex gap-2">
                             <button
@@ -181,22 +198,22 @@ export default function CommunityNetworkPage() {
                             })
                         ) : (
                             <p className="font-['JetBrains_Mono'] text-xs text-[#45464d]">
-                                No se encontraron eventos.
+                                No hay eventos programados para este mes.
                             </p>
                         )}
                     </div>
                 </section>
 
-                {/* Previsualización del JSON Endpoint con Altura Fija y Scroll */}
+                {/* Previsualización del JSON Endpoint */}
                 <section className="md:col-span-12 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-black/10 pb-4">
                         <div>
                             <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black flex items-center gap-2">
                                 <span className="material-symbols-outlined text-orange-500">rss_feed</span>
-                                Feed RSS de Eventos
+                                Feed RSS de Eventos (Mes Actual)
                             </h2>
                             <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
-                                Suscripción RSS estándar accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">events.json</code>.
+                                Suscripción RSS accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">events.json</code>.
                             </p>
                         </div>
                         <button
@@ -210,7 +227,6 @@ export default function CommunityNetworkPage() {
                         </button>
                     </div>
 
-                    {/* Contenedor del Visor RSS / XML */}
                     <div className="bg-[#1e1e1e] border border-black/20 rounded-lg p-4 font-['JetBrains_Mono'] text-xs flex flex-col">
                         <div className="text-gray-400 mb-2 border-b border-gray-700 pb-2 flex justify-between items-center text-[10px]">
                             <span>GET /events.json</span>
@@ -221,10 +237,10 @@ export default function CommunityNetworkPage() {
                                 {`<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
   <channel>
-    <title>Eventos de la Comunidad</title>
+    <title>Eventos del Mes</title>
     <link>${window.location.origin}</link>
-    <description>Próximos eventos y talleres interactivos</description>
-${eventsData.map(event => `    <item>
+    <description>Eventos y talleres programados para este mes</description>
+${filteredEvents.map(event => `    <item>
       <title>${event.title || 'Evento'}</title>
       <pubDate>${event.date || ''}</pubDate>
       <description>${event.location || ''} - ${event.time || ''}</description>

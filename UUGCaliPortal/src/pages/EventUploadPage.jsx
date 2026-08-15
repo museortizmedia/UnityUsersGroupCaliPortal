@@ -1,29 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchJsonFromGithub, applyJsonCrudOperation } from '../helpers/githubService';
-import TagInput from '../components/TagInput';
 
 const REPO_OWNER = 'museortizmedia';
 const REPO_NAME = 'UnityUsersGroupCaliPortal';
-const FILE_PATH = 'UUGCaliPortal/src/data/packages.json';
+const FILE_PATH = 'UUGCaliPortal/public/events.json';
 
-const EMPTY_FORM = {
+const EMPTY_EVENT_FORM = {
   id: '',
-  name: '',
-  category: 'Gráficos y Shaders',
-  version: 'v1.0.0',
+  title: '',
+  date: '',
+  time: '',
+  location: '',
   description: '',
-  gitUrl: '',
-  unityVersion: '2022.3 LTS+',
-  author: '',
-  tags: [], // <-- Manejado como Array
-  readme: '',
-  isOfficial: false,
-  icon: 'extension',
-  gitUrlManual: false
+  rsvpUrl: '',
+  buttonText: 'Confirmar Asistencia',
+  featured: false
 };
 
-export default function PackageUploadPage() {
+export default function EventUploadPage() {
   const { githubToken } = useAuth();
 
   // Estados de datos de GitHub
@@ -35,25 +30,16 @@ export default function PackageUploadPage() {
 
   // Estado del formulario (Creación / Edición)
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [formData, setFormData] = useState(EMPTY_EVENT_FORM);
 
   // Estados de interfaz
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
 
-  const categories = [
-    'Gráficos y Shaders',
-    'Animación',
-    'Herramientas y Utilidades',
-    'Modelos 3D y Entornos',
-    'Audio y Sonido',
-    'IU y Sistemas'
-  ];
-
-  // 1. Cargar paquetes desde GitHub al montar
+  // 1. Cargar eventos desde GitHub al montar
   useEffect(() => {
-    const loadPackages = async () => {
+    const loadEvents = async () => {
       setIsLoading(true);
       setStatusMsg({ type: '', text: '' });
 
@@ -70,109 +56,76 @@ export default function PackageUploadPage() {
         setRawJsonText(JSON.stringify(list, null, 2));
         if (list.length > 0) setOpenAccordionId(list[0].id);
       } catch (err) {
-        setJsonError('No se pudo obtener el archivo packages.json desde GitHub.');
+        setJsonError('No se pudo obtener el archivo events.json desde GitHub.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadPackages();
+    loadEvents();
   }, [githubToken]);
 
-  // Manejar cambios en campos tradicionales del formulario
+  // Manejar cambios en campos del formulario
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => {
-      const updated = {
-        ...prev,
-        [name]: type === 'checkbox' ? checked : value
-      };
-
-      if (name === 'name' && !prev.gitUrlManual && !editingId) {
-        const slug = value.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        updated.gitUrl = slug ? `https://github.com/caliuug/${slug}.git` : '';
-      }
-      return updated;
-    });
-  };
-
-  // Manejador específico para el componente TagInput
-  const handleTagsChange = (newTags) => {
     setFormData((prev) => ({
       ...prev,
-      tags: newTags
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
-  // Cargar elemento para edición
-  const handleEditPackage = (item) => {
+  // Cargar evento para edición
+  const handleEditEvent = (item) => {
     setEditingId(item.id);
 
-    // Normalizar tags a array
-    let tagsArray = [];
-    if (Array.isArray(item.tags)) {
-      tagsArray = item.tags;
-    } else if (typeof item.tags === 'string' && item.tags) {
-      tagsArray = item.tags.split(',').map((t) => t.trim()).filter(Boolean);
-    }
-
     setFormData({
-      id: item.id,
-      name: item.name || '',
-      category: item.category || 'Gráficos y Shaders',
-      version: item.version || 'v1.0.0',
+      id: item.id || '',
+      title: item.title || '',
+      date: item.date || '',
+      time: item.time || '',
+      location: item.location || '',
       description: item.description || '',
-      gitUrl: item.gitUrl || '',
-      unityVersion: item.unityVersion || '2022.3 LTS+',
-      author: item.author || '',
-      tags: tagsArray,
-      readme: item.readme || '',
-      isOfficial: item.isOfficial || false,
-      icon: item.icon || 'extension',
-      gitUrlManual: true
+      rsvpUrl: item.rsvpUrl || '',
+      buttonText: item.buttonText || 'Confirmar Asistencia',
+      featured: item.featured || false
     });
-    setStatusMsg({ type: 'info', text: `Editando el paquete: ${item.name}` });
+    setStatusMsg({ type: 'info', text: `Editando el evento: ${item.title}` });
   };
 
   // Cancelar Edición
   const handleCancelEdit = () => {
     setEditingId(null);
-    setFormData(EMPTY_FORM);
+    setFormData(EMPTY_EVENT_FORM);
     setStatusMsg({ type: '', text: '' });
   };
 
   // Guardar (Crear o Actualizar) en estado local
-  const handleSavePackage = (e) => {
+  const handleSaveEvent = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.gitUrl) return;
+    if (!formData.title || !formData.date) return;
 
-    const packageSlug = formData.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    const newId = editingId || packageSlug || `pkg-${Date.now()}`;
+    const eventSlug = formData.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const newId = editingId || (formData.id.trim() ? formData.id.trim() : `event-${eventSlug || Date.now()}`);
 
-    const packagePayload = {
+    const eventPayload = {
       id: newId,
-      name: formData.name,
-      description: formData.description || 'Sin descripción provista.',
-      isOfficial: formData.isOfficial,
-      icon: formData.icon || 'extension',
-      category: formData.category,
-      version: formData.version || 'v1.0.0',
-      downloads: formData.downloads || '0',
-      lastUpdated: 'Hace un momento',
-      gitUrl: formData.gitUrl,
-      unityVersion: formData.unityVersion || '2022.3 LTS+',
-      author: formData.author || 'Comunidad',
-      tags: formData.tags.length > 0 ? formData.tags : ['Unity'],
-      readme: formData.readme || ''
+      title: formData.title,
+      date: formData.date,
+      time: formData.time || '',
+      location: formData.location || '',
+      description: formData.description || '',
+      rsvpUrl: formData.rsvpUrl || '',
+      buttonText: formData.buttonText || 'Confirmar Asistencia',
+      featured: formData.featured
     };
 
     let updatedList;
     if (editingId) {
-      updatedList = fullJsonData.map((item) => (item.id === editingId ? packagePayload : item));
-      setStatusMsg({ type: 'info', text: 'Paquete actualizado localmente. Recuerda enviar el commit.' });
+      updatedList = fullJsonData.map((item) => (item.id === editingId ? eventPayload : item));
+      setStatusMsg({ type: 'info', text: 'Evento actualizado localmente. Recuerda hacer commit.' });
     } else {
-      updatedList = [packagePayload, ...fullJsonData];
-      setStatusMsg({ type: 'info', text: 'Paquete agregado a la lista local. Haz clic en "Guardar Cambios" para subir a GitHub.' });
+      updatedList = [eventPayload, ...fullJsonData];
+      setStatusMsg({ type: 'info', text: 'Evento agregado a la lista local. Haz clic en "Guardar Cambios" para subir a GitHub.' });
     }
 
     setFullJsonData(updatedList);
@@ -181,7 +134,7 @@ export default function PackageUploadPage() {
     handleCancelEdit();
   };
 
-  // Manejador del Editor JSON Crudo
+  // Editor JSON Crudo
   const handleRawJsonChange = (e) => {
     const val = e.target.value;
     setRawJsonText(val);
@@ -192,15 +145,15 @@ export default function PackageUploadPage() {
         setFullJsonData(parsed);
         setJsonError('');
       } else {
-        setJsonError('El JSON debe ser un Arreglo [] de paquetes.');
+        setJsonError('El JSON debe ser un Arreglo [] de eventos.');
       }
     } catch (err) {
       setJsonError('Error de sintaxis JSON: ' + err.message);
     }
   };
 
-  // Eliminar elemento
-  const handleDeletePackage = (id) => {
+  // Eliminar evento
+  const handleDeleteEvent = (id) => {
     const updatedList = fullJsonData.filter((item) => item.id !== id);
     setFullJsonData(updatedList);
     setRawJsonText(JSON.stringify(updatedList, null, 2));
@@ -238,10 +191,10 @@ export default function PackageUploadPage() {
         token: githubToken,
         action: 'REPLACE_ALL',
         item: fullJsonData,
-        commitMessage: `crud(packages): sync packages.json (${fullJsonData.length} items)`
+        commitMessage: `crud(events): sync events.json (${fullJsonData.length} items)`
       });
 
-      setStatusMsg({ type: 'success', text: '¡Cambios guardados exitosamente en GitHub!' });
+      setStatusMsg({ type: 'success', text: '¡Eventos guardados exitosamente en public/events.json!' });
     } catch (err) {
       setStatusMsg({ type: 'error', text: err.message });
     } finally {
@@ -256,14 +209,14 @@ export default function PackageUploadPage() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-black/5 text-black font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest px-2.5 py-1 rounded border border-black/10 font-bold">
-              Portal de Publicación
+              Public Feed Manager
             </span>
           </div>
           <h1 className="font-['Space_Grotesk'] text-4xl md:text-5xl font-bold text-black tracking-tight">
-            Gestión de Paquetes UPM
+            Gestión de Eventos
           </h1>
           <p className="font-['Inter'] text-lg text-[#45464d] max-w-2xl mt-2">
-            Administra, crea y edita los paquetes de la comunidad contenidos en <code className="font-['JetBrains_Mono'] text-black font-semibold">packages.json</code>.
+            Administra los eventos de la comunidad servidos desde el directorio público (<code className="font-['JetBrains_Mono'] text-black font-semibold">public/events.json</code>).
           </p>
         </div>
 
@@ -291,13 +244,12 @@ export default function PackageUploadPage() {
       {/* Alertas */}
       {statusMsg.text && (
         <div
-          className={`mb-6 p-4 rounded-xl border flex items-center justify-between font-['Inter'] text-sm ${
-            statusMsg.type === 'error'
+          className={`mb-6 p-4 rounded-xl border flex items-center justify-between font-['Inter'] text-sm ${statusMsg.type === 'error'
               ? 'bg-red-50 border-red-200 text-red-700'
               : statusMsg.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : 'bg-blue-50 border-blue-200 text-blue-800'
-          }`}
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-blue-50 border-blue-200 text-blue-800'
+            }`}
         >
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined">
@@ -314,16 +266,16 @@ export default function PackageUploadPage() {
       {isLoading ? (
         <div className="bg-white/40 backdrop-blur-md border border-black/10 rounded-xl p-12 text-center my-8">
           <span className="material-symbols-outlined text-4xl animate-spin text-black mb-2">sync</span>
-          <p className="font-['JetBrains_Mono'] text-sm text-[#45464d]">Cargando paquetes...</p>
+          <p className="font-['JetBrains_Mono'] text-sm text-[#45464d]">Cargando eventos desde GitHub...</p>
         </div>
       ) : (
         <div className="grid grid-cols-12 gap-8 mb-16">
-          {/* Formulario (Creación/Edición) */}
+          {/* Formulario Fijo (Creación/Edición) - Columna Izquierda */}
           <div className="col-span-12 lg:col-span-6 bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6 md:p-8 flex flex-col justify-between space-y-6">
             <div className="flex items-center justify-between border-b border-black/10 pb-3">
               <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black flex items-center gap-2">
-                <span className="material-symbols-outlined">{editingId ? 'edit_square' : 'add_box'}</span>
-                {editingId ? 'Editar Paquete' : 'Registrar Nuevo Paquete'}
+                <span className="material-symbols-outlined">{editingId ? 'edit_calendar' : 'event_available'}</span>
+                {editingId ? 'Editar Evento' : 'Registrar Nuevo Evento'}
               </h2>
               {editingId && (
                 <button
@@ -335,176 +287,136 @@ export default function PackageUploadPage() {
               )}
             </div>
 
-            <form onSubmit={handleSavePackage} className="space-y-4">
+            <form onSubmit={handleSaveEvent} className="space-y-4">
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 sm:col-span-8">
                   <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                    Nombre del Paquete *
+                    Título del Evento *
                   </label>
                   <input
                     type="text"
-                    name="name"
+                    name="title"
                     required
-                    placeholder="ej: @caliuug/core-renderer"
-                    value={formData.name}
+                    placeholder="ej: Meetup Unity Cali 2026"
+                    value={formData.title}
                     onChange={handleInputChange}
                     className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-sm text-black outline-none"
                   />
                 </div>
                 <div className="col-span-12 sm:col-span-4">
                   <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                    Versión *
+                    ID
                   </label>
                   <input
                     type="text"
-                    name="version"
-                    required
-                    placeholder="v1.0.0"
-                    value={formData.version}
+                    name="id"
+                    placeholder="Auto-generado"
+                    value={formData.id}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-sm text-black outline-none"
+                    disabled={!!editingId}
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none disabled:opacity-50"
                   />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                  URL del Repositorio Git *
-                </label>
-                <input
-                  type="url"
-                  name="gitUrl"
-                  required
-                  placeholder="https://github.com/usuario/repositorio.git"
-                  value={formData.gitUrl}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    setFormData((prev) => ({ ...prev, gitUrlManual: true }));
-                  }}
-                  className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-12 sm:col-span-8">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                    Categoría *
-                  </label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none cursor-pointer"
-                  >
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-span-12 sm:col-span-4">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                    Ícono
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="icon"
-                      placeholder="extension"
-                      value={formData.icon}
-                      onChange={handleInputChange}
-                      className="w-full bg-white/60 border border-black/10 focus:border-black rounded pl-3 pr-8 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
-                    />
-                    <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-black text-base">
-                      {formData.icon || 'extension'}
-                    </span>
-                  </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 sm:col-span-6">
                   <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                    Soporte Unity
+                    Fecha (ej: 15 AGO) *
                   </label>
                   <input
                     type="text"
-                    name="unityVersion"
-                    placeholder="2022.3 LTS+"
-                    value={formData.unityVersion}
+                    name="date"
+                    required
+                    placeholder="15 AGO"
+                    value={formData.date}
                     onChange={handleInputChange}
                     className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
                   />
                 </div>
                 <div className="col-span-12 sm:col-span-6">
                   <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                    Autor / Comunidad
+                    Hora
                   </label>
                   <input
                     type="text"
-                    name="author"
-                    placeholder="Unity Users Group Cali"
-                    value={formData.author}
+                    name="time"
+                    placeholder="6:30 PM - 8:30 PM"
+                    value={formData.time}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-xs text-black outline-none"
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
                   />
                 </div>
               </div>
 
-              {/* Resumen / Descripción */}
               <div>
                 <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                  Resumen Corto / Descripción *
+                  Ubicación / Plataforma
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Auditorio Principal / Discord / Zoom"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-xs text-black outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                  Descripción
                 </label>
                 <textarea
                   name="description"
-                  required
-                  rows={4}
-                  placeholder="Detalla las características principales del paquete, dependencias y su propuesta de valor..."
+                  rows={3}
+                  placeholder="Detalles del evento, agenda o ponentes..."
                   value={formData.description}
                   onChange={handleInputChange}
                   className="w-full bg-white/60 border border-black/10 focus:border-black rounded p-3 font-['Inter'] text-sm text-black outline-none resize-y leading-relaxed"
                 ></textarea>
               </div>
 
-              {/* Integración del Componente TagInput */}
-              <div>
-                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                  Etiquetas
-                </label>
-                <TagInput
-                  tags={formData.tags}
-                  onChange={handleTagsChange}
-                  placeholder="Escribe tag y presiona Enter..."
-                />
-              </div>
-
-              <div>
-                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                  Documentación / Readme
-                </label>
-                <textarea
-                  name="readme"
-                  rows={20}
-                  placeholder="Instrucciones o notas adicionales..."
-                  value={formData.readme}
-                  onChange={handleInputChange}
-                  className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-xs text-black outline-none resize-y"
-                ></textarea>
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-12 sm:col-span-7">
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                    URL de Registro / RSVP
+                  </label>
+                  <input
+                    type="url"
+                    name="rsvpUrl"
+                    placeholder="https://meetup.com/..."
+                    value={formData.rsvpUrl}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
+                  />
+                </div>
+                <div className="col-span-12 sm:col-span-5">
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                    Texto del Botón
+                  </label>
+                  <input
+                    type="text"
+                    name="buttonText"
+                    placeholder="Confirmar Asistencia"
+                    value={formData.buttonText}
+                    onChange={handleInputChange}
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-xs text-black outline-none"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="inline-flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    name="isOfficial"
-                    checked={formData.isOfficial}
+                    name="featured"
+                    checked={formData.featured}
                     onChange={handleInputChange}
                     className="w-4 h-4 rounded border-black/20 text-black accent-black cursor-pointer"
                   />
                   <span className="font-['Inter'] text-xs text-black font-medium">
-                    Paquete Oficial / Verificado
+                    Marcar como Evento Destacado
                   </span>
                 </label>
               </div>
@@ -525,7 +437,7 @@ export default function PackageUploadPage() {
           <div className="col-span-12 lg:col-span-6 flex flex-col gap-6">
             <div className="flex items-center justify-between bg-white/40 backdrop-blur-md border border-black/10 rounded-xl p-3">
               <span className="font-['JetBrains_Mono'] text-xs font-bold text-black uppercase tracking-wider pl-2">
-                Paquetes en Lista ({fullJsonData.length})
+                Eventos Programados ({fullJsonData.length})
               </span>
               <button
                 type="button"
@@ -540,10 +452,10 @@ export default function PackageUploadPage() {
             </div>
 
             {!isRawEditing ? (
-              <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[750px] overflow-y-auto pr-1">
                 {fullJsonData.length === 0 ? (
                   <div className="bg-white/30 border border-dashed border-black/20 rounded-xl p-8 text-center text-[#45464d] font-['Inter'] text-sm">
-                    No hay paquetes cargados.
+                    No hay eventos registrados.
                   </div>
                 ) : (
                   fullJsonData.map((item) => {
@@ -553,9 +465,8 @@ export default function PackageUploadPage() {
                     return (
                       <div
                         key={item.id}
-                        className={`bg-white/60 border rounded-xl overflow-hidden transition-all ${
-                          isBeingEdited ? 'border-black ring-1 ring-black' : 'border-black/10'
-                        }`}
+                        className={`bg-white/60 border rounded-xl overflow-hidden transition-all ${isBeingEdited ? 'border-black ring-1 ring-black' : 'border-black/10'
+                          }`}
                       >
                         {/* Cabecera del Acordeón */}
                         <div
@@ -563,22 +474,24 @@ export default function PackageUploadPage() {
                           className="p-4 flex items-center justify-between cursor-pointer hover:bg-black/5 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-black">
-                              {item.icon || 'extension'}
-                            </span>
+                            <div className="bg-black/5 border border-black/10 rounded px-2.5 py-1 text-center min-w-[50px]">
+                              <span className="block font-['JetBrains_Mono'] text-xs font-bold text-black uppercase">
+                                {item.date || '---'}
+                              </span>
+                            </div>
                             <div>
                               <div className="flex items-center gap-2">
                                 <h4 className="font-['Space_Grotesk'] font-bold text-sm text-black">
-                                  {item.name}
+                                  {item.title || 'Evento Sin Título'}
                                 </h4>
-                                {item.isOfficial && (
+                                {item.featured && (
                                   <span className="bg-black text-white font-['JetBrains_Mono'] text-[9px] uppercase px-1.5 py-0.5 rounded font-bold">
-                                    Oficial
+                                    Destacado
                                   </span>
                                 )}
                               </div>
                               <p className="font-['JetBrains_Mono'] text-[11px] text-[#45464d]">
-                                {item.category} • {item.version}
+                                {item.location || 'Sin ubicación'} {item.time ? `• ${item.time}` : ''}
                               </p>
                             </div>
                           </div>
@@ -588,10 +501,10 @@ export default function PackageUploadPage() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleEditPackage(item);
+                                handleEditEvent(item);
                               }}
                               className="p-1.5 text-black/70 hover:bg-black/10 rounded transition-colors"
-                              title="Editar paquete"
+                              title="Editar evento"
                             >
                               <span className="material-symbols-outlined text-base">edit</span>
                             </button>
@@ -600,10 +513,10 @@ export default function PackageUploadPage() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeletePackage(item.id);
+                                handleDeleteEvent(item.id);
                               }}
                               className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                              title="Eliminar paquete"
+                              title="Eliminar evento"
                             >
                               <span className="material-symbols-outlined text-base">delete</span>
                             </button>
@@ -614,21 +527,14 @@ export default function PackageUploadPage() {
                           </div>
                         </div>
 
-                        {/* Contenido Expandible */}
+                        {/* Contenido Expandible del Acordeón */}
                         {isOpen && (
                           <div className="px-4 pb-4 pt-2 border-t border-black/5 font-['Inter'] text-xs text-[#45464d] space-y-2 bg-white/30">
-                            <p className="leading-relaxed"><strong>Descripción:</strong> {item.description}</p>
-                            <p><strong>Git URL:</strong> <code className="font-['JetBrains_Mono'] text-black">{item.gitUrl}</code></p>
-                            <p><strong>Autor:</strong> {item.author || 'N/A'} | <strong>Unity:</strong> {item.unityVersion}</p>
-                            {item.tags && item.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 pt-1">
-                                {item.tags.map((tag, idx) => (
-                                  <span key={idx} className="bg-black/5 text-black font-['JetBrains_Mono'] text-[10px] px-2 py-0.5 rounded border border-black/10">
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
+                            {item.description && <p className="leading-relaxed"><strong>Descripción:</strong> {item.description}</p>}
+                            {item.rsvpUrl && (
+                              <p><strong>Enlace RSVP:</strong> <a href={item.rsvpUrl} target="_blank" rel="noopener noreferrer" className="font-['JetBrains_Mono'] text-black underline">{item.rsvpUrl}</a></p>
                             )}
+                            <p><strong>Botón:</strong> {item.buttonText || 'Confirmar Asistencia'}</p>
                           </div>
                         )}
                       </div>
@@ -640,7 +546,7 @@ export default function PackageUploadPage() {
               /* Editor Raw JSON */
               <div className="bg-black rounded-xl p-4 font-['JetBrains_Mono']">
                 <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3 text-white/50 text-[10px] uppercase tracking-widest">
-                  <span>Edición Directa JSON</span>
+                  <span>Edición Directa JSON (public/events.json)</span>
                   {jsonError ? (
                     <span className="text-red-400 font-bold">Sintaxis Inválida</span>
                   ) : (

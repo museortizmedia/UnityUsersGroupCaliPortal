@@ -1,23 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { HeaderProvider, useHeader } from './context/HeaderContext';
+
 import AppLayout from './layouts/AppLayout';
+import NotFoundPage from './pages/NotFoundPage';
 import MainPage from './pages/MainPage';
-import MyLibraryPage from './pages/MyLibraryPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
-import ViewProjectPage from './pages/ViewProjectPage';
+import CommunityNetworkPage from './pages/CommunityNetworkPage';
+
+import DocsPage from './pages/DocsPage';
+import SupportPage from './pages/SupportPage';
+
 import ArchitecturePage from './pages/ArchitecturePage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
-import DocsPage from './pages/DocsPage';
-import SupportPage from './pages/SupportPage';
-import NotFoundPage from './pages/NotFoundPage';
-import CommunityNetworkPage from './pages/CommunityNetworkPage';
+
+import EventUploadPage from './pages/EventUploadPage';
+
 import ProjectsPage from './pages/ProjectsPage';
-import UpdateProjectPage from './pages/UploadProjectPage';
+import ProjectUploadPage from './pages/ProjectUploadPage';
+import ProjectViewPage from './pages/ProjectViewPage';
+
 import PackageRegistryPage from './pages/PackageRegistryPage';
 import PackageUploadPage from './pages/PackageUploadPage';
+import PackageDetailPage from './pages/PackageDetailPage';
+
+import MyLibraryPage from './pages/MyLibraryPage';
 
 // 1. Mapeo entre URLs en el Hash y Vistas
 const ROUTE_MAP = {
@@ -33,12 +42,15 @@ const ROUTE_MAP = {
   '/privacy': 'privacy',
   '/terms': 'terms',
 
+  '/event-update': 'event-update',
+
   '/projects': 'projects',
   '/update-project': 'update-project',
   '/project': 'project-detail',
 
   '/packages': 'packages',
   '/package-upload': 'package-upload',
+  '/package': 'package',
 
   '/library': 'library',
 };
@@ -61,12 +73,15 @@ const PAGE_HEADER_CONFIG = {
   privacy: { showLogo: true, showSearch: false, category: 'Forum' },
   terms: { showLogo: true, showSearch: false, category: 'Forum' },
 
+  'event-update': { showLogo: true, showSearch: false, category: 'Projects' },
+
   projects: { showLogo: true, showSearch: true, category: 'Projects' },
   'update-project': { showLogo: true, showSearch: false, category: 'Projects' },
   'project-detail': { showLogo: true, showSearch: false, category: 'Projects' },
 
   packages: { showLogo: true, showSearch: true, category: 'Engine' },
   'package-upload': { showLogo: true, showSearch: false, category: 'Engine' },
+  package: { showLogo: true, showSearch: true, category: 'Engine' },
 
   library: { showLogo: true, showSearch: true, category: 'Projects' },
 };
@@ -143,7 +158,7 @@ function AppContent() {
 
       case 'project-detail':
         return (
-          <ViewProjectPage
+          <ProjectViewPage
             projectId={selectedProjectId}
             setActiveTab={setActiveTab}
           />
@@ -165,7 +180,7 @@ function AppContent() {
         );
 
       case 'update-project': 
-        return <UpdateProjectPage setActiveTab={setActiveTab} />;
+        return <ProjectUploadPage setActiveTab={setActiveTab} />;
       
       case 'packages': 
         return (
@@ -178,6 +193,13 @@ function AppContent() {
       
       case 'package-upload': 
         return <PackageUploadPage setActiveTab={setActiveTab} />;
+      
+      case 'event-update':
+        return <EventUploadPage
+            setActiveTab={setActiveTab} 
+            selectedPackage={selectedPackage}
+            setSelectedPackage={setSelectedPackage}
+          />
       
       default: 
         return <NotFoundPage setActiveTab={setActiveTab} />;

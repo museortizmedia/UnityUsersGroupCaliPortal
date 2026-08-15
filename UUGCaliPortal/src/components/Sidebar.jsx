@@ -8,11 +8,10 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
   const menuItems = [
     { id: 'main', label: 'Main', icon: 'grid_view' },
     { id: 'projects', label: 'Projects', icon: 'videogame_asset' },
-    //...(isLoggedIn ? [{ id: 'update-project', label: 'Upload Project', icon: 'upload', level: 2 }] : []),
     { id: 'packages', label: 'Packages', icon: 'deployed_code' },
-    //...(isLoggedIn ? [{ id: 'package-upload', label: 'Upload Package', icon: 'upload', level: 2 }] : []),
     { id: 'library', label: 'My Library', icon: 'package' },
     { id: 'community', label: 'Community', icon: 'groups' },
+    //...(isLoggedIn ? [{ id: 'event-update', label: 'Events', icon: 'calendar_clock', level: 2 }] : []),
   ];
 
   return (
@@ -43,6 +42,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
                 className="w-10 h-10 rounded-full bg-[#eae7e9] object-cover border border-black/10 group-hover:border-black transition-colors"
                 alt="User Profile"
                 src={user.avatar}
+                draggable="false"
               />
               <div className="overflow-hidden">
                 <div className="font-['Space_Grotesk'] font-bold text-black group-hover:underline truncate">
@@ -92,21 +92,31 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
           {/* Acciones para publicar o cerrar sesión */}
           {isLoggedIn && (
             <div className="px-6 mb-4 space-y-2">
-              { isLoggedIn && (<button
-                onClick={() => setActiveTab('update-project')}
-                className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined text-sm">add</span>
-                New Project
-              </button> )}
+              { isLoggedIn && <>
+                <button
+                  onClick={() => setActiveTab('update-project')}
+                  className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  New Project
+                </button>
+                
+                <button
+                  onClick={() => setActiveTab('package-upload')}
+                  className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  New Package
+                </button>
 
-              { isLoggedIn && (<button
-                onClick={() => setActiveTab('package-upload')}
-                className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
-              >
-                <span className="material-symbols-outlined text-sm">add</span>
-                New Package
-              </button> )}
+                <button
+                  onClick={() => setActiveTab('event-update')}
+                  className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  New Event
+                </button> 
+              </>}
 
               <button
                 onClick={logout}
