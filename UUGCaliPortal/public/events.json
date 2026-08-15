@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "1",
+    "title": "Evento prueba",
+    "date": "15 AGO",
+    "time": "6:30 PM - 7:30 PM",
+    "location": "Sitio de Prueba",
+    "description": "Este es un evento de prueba para comprobar",
+    "rsvpUrl": "https://www.google.com",
+    "buttonText": "Confirmar Asistencia",
+    "featured": true
+  }
+]
