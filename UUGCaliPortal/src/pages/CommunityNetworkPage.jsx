@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useHeader } from '../context/HeaderContext';
 import { useEvents } from '../hooks/useEvents';
-import membersData from '../data/members.json';
+import membersDataRaw from '../data/members.json';
 
 const organicShapes = [
     "rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%]",
@@ -9,6 +9,13 @@ const organicShapes = [
     "rounded-[30%_70%_70%_30%_/_30%_30%_70%_70%]",
     "rounded-[50%_50%_20%_80%_/_25%_80%_20%_75%]"
 ];
+
+const membersData = membersDataRaw.map((member) => ({
+    ...member,
+    avatar: member.avatar.startsWith('http')
+        ? member.avatar
+        : `${import.meta.env.BASE_URL}${member.avatar.replace(/^\//, '')}`,
+}));
 
 export default function CommunityNetworkPage() {
     const { searchQuery, activeCategory } = useHeader();
@@ -33,7 +40,13 @@ export default function CommunityNetworkPage() {
     const currentEvents = eventsData.slice(startIndex, startIndex + EVENTS_PER_PAGE);
 
     const handleCopyEndpoint = () => {
-        const jsonEndpoint = `${window.location.origin}/events.json`;
+        // Genera la URL completa combinando el origen y la ruta base de Vite
+        const baseUrl = import.meta.env.BASE_URL.endsWith('/')
+            ? import.meta.env.BASE_URL
+            : `${import.meta.env.BASE_URL}/`;
+
+        const jsonEndpoint = `${window.location.origin}${baseUrl}events.json`;
+
         navigator.clipboard.writeText(jsonEndpoint);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -183,7 +196,7 @@ export default function CommunityNetworkPage() {
                                 Feed RSS de Eventos
                             </h2>
                             <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
-                                Suscripción RSS estándar accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">/events.json</code>.
+                                Suscripción RSS estándar accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">events.json</code>.
                             </p>
                         </div>
                         <button

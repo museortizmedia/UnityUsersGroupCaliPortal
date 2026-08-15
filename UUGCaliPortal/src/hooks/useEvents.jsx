@@ -5,10 +5,14 @@ export function useEvents() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Si tu archivo está en public/events.json usa '/events.json'
-    // Si lo pusiste en public/api/events.json usa '/api/events.json'
-    fetch('/events.json')
-      .then((res) => res.json())
+    // import.meta.env.BASE_URL incluirá '/UnityUsersGroupCaliPortal/'
+    fetch(`${import.meta.env.BASE_URL}events.json`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
         setEventsData(data);
         setLoading(false);

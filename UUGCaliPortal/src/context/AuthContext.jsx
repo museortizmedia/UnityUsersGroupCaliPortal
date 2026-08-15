@@ -5,7 +5,7 @@ const AuthContext = createContext(null);
 // Clave para guardar en localStorage
 const AUTH_STORAGE_KEY = 'uug_auth_user';
 
-// Perfil Administrador Base
+// Perfil Administrador Base (usando BASE_URL de Vite)
 const MOCK_ADMIN_USER = {
   name: 'Diego Ortiz',
   role: 'Community Lead',
@@ -17,29 +17,35 @@ const MOCK_ADMIN_USER = {
   ],
   email: 'museortiz@gmail.com',
   isAdmin: true,
-  avatar: '/DiegoOrtiz-Avatar.jpg',
+  // import.meta.env.BASE_URL concatenará '/UnityUsersGroupCaliPortal/' automáticamente
+  avatar: `${import.meta.env.BASE_URL}DiegoOrtiz-Avatar.jpg`,
 };
 
 export function AuthProvider({ children }) {
-  // Inicialización perezosa leyendo el almacenamiento local
   const [user, setUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem(AUTH_STORAGE_KEY);
-      return savedUser ? JSON.parse(savedUser) : null;
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        // Actualizamos la ruta del avatar por si venía de una versión anterior guardada en localStorage
+        return {
+          ...parsed,
+          avatar: `${import.meta.env.BASE_URL}DiegoOrtiz-Avatar.jpg`,
+        };
+      }
+      return null;
     } catch (error) {
       console.error('Error al recuperar sesión de localStorage:', error);
       return null;
     }
   });
 
-  // Autenticación guardando el Token de GitHub
   const login = (email, githubToken) => {
-    // Validamos que exista un correo y un token ingresado
     if (email && githubToken) {
       const loggedUser = {
         ...MOCK_ADMIN_USER,
         email: email,
-        githubToken: githubToken.trim(), // Token de GitHub guardado solo en el cliente
+        githubToken: githubToken.trim(),
       };
 
       setUser(loggedUser);
