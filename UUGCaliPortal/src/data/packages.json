@@ -13,8 +13,18 @@
     "unityVersion": "6000.0",
     "author": "Diego Ortiz",
     "tags": [
-      "Unity"
+      "Unity",
+      "Task",
+      "tasks",
+      "GDD",
+      "Game Document",
+      "M-GDD",
+      "Folder",
+      "Organization",
+      "teams",
+      "dev",
+      "Dev Suite"
     ],
-    "readme": "Documentación y guía de uso del paquete."
+    "readme": "Folio DevSuite | Indie Project Manager Suite for Unity\n\nFolio DevSuite es una solución integral de gestión de proyectos diseñada para integrarse nativamente dentro del editor de Unity 6.0+. Su objetivo principal es centralizar la organización de tareas, la estructuración de archivos y la documentación viva del proyecto, permitiendo a desarrolladores e indies mantener un control total de su desarrollo sin interrumpir el flujo de trabajo ni salir del motor de juego.\n\nLa suite se articula a través del Dashboard Central 🦊 Folio, un panel de control transversal que consolida las métricas globales de avance, ofrece filtrado avanzado de tareas por rol y estado, incluye un bloc de notas rápidas y permite consultar la documentación del proyecto de forma inmediata mediante una vista lateral integrada.\n\nEl primer módulo integrado es 🐻 Koda (Docs Vivos & Markdown), una herramienta para crear y gestionar documentación modular dentro del editor con soporte de visualización en modo claro y oscuro, tablas y código. Koda destaca por su sistema de documentación viva: al definir bloques de variables (DOCVARS) dentro de archivos Markdown, genera automáticamente un script en C# (DocVariables.cs) para consumir esos valores directamente en tiempo de ejecución.\n\nEl segundo módulo es 🦎 Flux (Diseñador & Validador de Carpetas), concebido para mantener la jerarquía y el orden del proyecto. Permite diseñar arquitecturas de archivos visualmente, asignar colores y descripciones a los directorios directamente en la ventana Project, validar la estructura mediante reglas de extensiones permitidas y compartir estas organizaciones a través de plantillas en formato JSON.\n\nEl tercer módulo es 🐝 Nexo (Task Manager), un gestor de tareas enfocado en el desarrollo ágil de videojuegos. Permite agrupar las funcionalidades en módulos independientes, hacer seguimiento del porcentaje de progreso, asignar responsabilidades por roles dentro del equipo y calcular métricas automáticas sobre el avance general del desarrollo."
   }
 ]
