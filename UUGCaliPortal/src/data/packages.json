@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": "folio--devsuite",
+    "name": "Folio: DevSuite",
+    "description": "DevSuite profesional para desarrolladores indie.",
+    "isOfficial": false,
+    "icon": "folder",
+    "category": "Herramientas y Utilidades",
+    "version": "v1.0.2",
+    "downloads": "0",
+    "lastUpdated": "Hace un momento",
+    "gitUrl": "https://github.com/museortizmedia/FolioDevSuite.git",
+    "unityVersion": "6000.0",
+    "author": "Diego Ortiz",
+    "tags": [
+      "Unity"
+    ],
+    "readme": "Documentación y guía de uso del paquete."
+  }
+]
