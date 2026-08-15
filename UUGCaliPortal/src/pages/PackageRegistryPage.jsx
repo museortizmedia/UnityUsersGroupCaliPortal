@@ -331,8 +331,8 @@ export default function PackageRegistryPage({ setActiveTab }) {
         <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-black/10 bg-white/20 font-['JetBrains_Mono'] text-xs text-[#45464d] uppercase tracking-wider">
           <div className="col-span-12 md:col-span-5">Paquete / Proyecto</div>
           <div className="col-span-3 hidden md:block">Categoría / Versión</div>
-          {/*<div className="col-span-2 hidden md:block text-right">Uso</div>*/}
-          <div className="col-span-2 hidden md:block text-right">Acciones</div>
+          <div className="col-span-2 hidden md:block text-right">{/*Uso*/}</div>
+          <div className="col-span-2 hidden md:block text-left">Acciones</div>
         </div>
 
         {filteredPackages.length > 0 ? (
@@ -377,28 +377,14 @@ export default function PackageRegistryPage({ setActiveTab }) {
                     <span className="text-[#45464d] mt-1">{pkg.version || 'v1.0.0'}</span>
                   </div>
 
-                  {/*<div className="col-span-6 md:col-span-2 flex items-center md:justify-end font-['JetBrains_Mono'] text-xs text-[#45464d]">
-                    <span className="material-symbols-outlined text-sm mr-1.5 opacity-70">
+                  <div className="col-span-6 md:col-span-2 flex items-center md:justify-end font-['JetBrains_Mono'] text-xs text-[#45464d]">
+                    {/*<span className="material-symbols-outlined text-sm mr-1.5 opacity-70">
                       download
                     </span>
-                    {pkg.downloads ?? 0}
-                  </div>*/}
+                    {pkg.downloads ?? 0}*/}
+                  </div>
 
-                  <div className="col-span-6 md:col-span-2 flex items-center justify-end space-x-2">
-                    {/* Botón de Marcador */}
-                    <button
-                      onClick={(e) => handleTogglePinPackage(e, pkg)}
-                      className={`p-1.5 rounded transition-colors flex items-center justify-center cursor-pointer ${
-                        pinned
-                          ? 'text-amber-500 hover:text-amber-600'
-                          : 'text-black/30 hover:text-black'
-                      }`}
-                      title={pinned ? 'Quitar de guardados' : 'Guardar en mi librería'}
-                    >
-                      <span className="material-symbols-outlined text-lg leading-none">
-                        {pinned ? 'star' : 'star_outline'}
-                      </span>
-                    </button>
+                  <div className="col-span-6 md:col-span-2 flex items-center justify-start space-x-2">
 
                     {/* Botón Copiar URL */}
                     <button
@@ -416,6 +402,22 @@ export default function PackageRegistryPage({ setActiveTab }) {
                         {copiedId === pkgId ? 'Copiado' : 'Git URL'}
                       </span>
                     </button>
+
+                    {/* Botón de Marcador */}
+                    <button
+                      onClick={(e) => handleTogglePinPackage(e, pkg)}
+                      className={`p-1.5 rounded transition-colors flex items-center justify-center cursor-pointer ${
+                        pinned
+                          ? 'text-amber-500 hover:text-amber-600'
+                          : 'text-black/30 hover:text-black'
+                      }`}
+                      title={pinned ? 'Quitar de guardados' : 'Guardar en mi librería'}
+                    >
+                      <span className="material-symbols-outlined text-lg leading-none">
+                        {pinned ? 'star' : 'star_outline'}
+                      </span>
+                    </button>
+
                   </div>
                 </div>
               );
