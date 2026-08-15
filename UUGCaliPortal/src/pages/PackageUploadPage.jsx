@@ -1,6 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { fetchJsonFromGithub, applyJsonCrudOperation } from '../helpers/githubService';
+
+const REPO_OWNER = 'museortizmedia';
+const REPO_NAME = 'UnityUsersGroupCaliPortal';
+const FILE_PATH = 'UUGCaliPortal/src/data/packages.json';
 
 export default function PackageUploadPage() {
+  const { githubToken } = useAuth();
+
+  // Estados de datos de GitHub
+  const [fullJsonData, setFullJsonData] = useState([]);
+  const [rawJsonText, setRawJsonText] = useState('[]');
+  const [isRawEditing, setIsRawEditing] = useState(false);
+  const [jsonError, setJsonError] = useState('');
+  const [openAccordionId, setOpenAccordionId] = useState(null);
+
+  // Estado del formulario para CREAR/EDITAR
   const [formData, setFormData] = useState({
     name: '',
     category: 'Gráficos y Shaders',
@@ -15,9 +31,10 @@ export default function PackageUploadPage() {
     icon: 'extension'
   });
 
+  // Estados de carga e interfaz
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [copiedJson, setCopiedJson] = useState(false);
+  const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
 
   const categories = [
     'Gráficos y Shaders',
@@ -28,6 +45,35 @@ export default function PackageUploadPage() {
     'IU y Sistemas'
   ];
 
+  // 1. Cargar paquetes desde GitHub al montar
+  useEffect(() => {
+    const loadPackages = async () => {
+      setIsLoading(true);
+      setStatusMsg({ type: '', text: '' });
+
+      try {
+        const { data } = await fetchJsonFromGithub({
+          owner: REPO_OWNER,
+          repo: REPO_NAME,
+          path: FILE_PATH,
+          token: githubToken
+        });
+
+        const list = Array.isArray(data) ? data : [];
+        setFullJsonData(list);
+        setRawJsonText(JSON.stringify(list, null, 2));
+        if (list.length > 0) setOpenAccordionId(list[0].id);
+      } catch (err) {
+        setJsonError('No se pudo obtener el archivo packages.json desde GitHub.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPackages();
+  }, [githubToken]);
+
+  // Modificar formulario
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => {
@@ -36,7 +82,6 @@ export default function PackageUploadPage() {
         [name]: type === 'checkbox' ? checked : value
       };
 
-      // Auto-generar sugerencia de URL de Git al escribir el nombre del paquete
       if (name === 'name' && !prev.gitUrlManual) {
         const slug = value.toLowerCase().replace(/[^a-z0-9]/g, '-');
         updated.gitUrl = slug ? `https://github.com/caliuug/${slug}.git` : '';
@@ -45,7 +90,7 @@ export default function PackageUploadPage() {
     });
   };
 
-  // Construir objeto formateado idéntico al esquema de packages.json
+  // Objeto formateado para la previsualización / inserción
   const generatedPayload = {
     id: formData.name ? formData.name.toLowerCase().replace(/[^a-z0-9]/g, '-') : 'id-paquete',
     name: formData.name || '@grupo/nombre-paquete',
@@ -63,27 +108,107 @@ export default function PackageUploadPage() {
     readme: formData.readme || 'Documentación y guía de uso del paquete.'
   };
 
-  const handleSubmit = (e) => {
+  // Añadir un nuevo paquete al estado local
+  const handleAddPackage = (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (!formData.name || !formData.gitUrl) return;
 
-    setTimeout(() => {
-      console.log('Package Payload JSON:', generatedPayload);
-      setIsSubmitting(false);
-      setSubmitted(true);
-    }, 1000);
+    const newPackage = { ...generatedPayload };
+    const updatedList = [newPackage, ...fullJsonData];
+
+    setFullJsonData(updatedList);
+    setRawJsonText(JSON.stringify(updatedList, null, 2));
+    setOpenAccordionId(newPackage.id);
+
+    // Resetear formulario
+    setFormData({
+      name: '',
+      category: 'Gráficos y Shaders',
+      version: 'v1.0.0',
+      description: '',
+      gitUrl: '',
+      unityVersion: '2022.3 LTS+',
+      author: '',
+      tags: '',
+      readme: '',
+      isOfficial: false,
+      icon: 'extension'
+    });
+
+    setStatusMsg({ type: 'info', text: 'Paquete agregado a la lista local. Haz clic en "Enviar Commit" para guardar en GitHub.' });
   };
 
-  const copyToClipboardJson = () => {
-    navigator.clipboard.writeText(JSON.stringify(generatedPayload, null, 2));
-    setCopiedJson(true);
-    setTimeout(() => setCopiedJson(false), 2000);
+  // Manejador del Editor JSON Crudo
+  const handleRawJsonChange = (e) => {
+    const val = e.target.value;
+    setRawJsonText(val);
+
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) {
+        setFullJsonData(parsed);
+        setJsonError('');
+      } else {
+        setJsonError('El JSON debe ser un Arreglo [] de paquetes.');
+      }
+    } catch (err) {
+      setJsonError('Error de sintaxis JSON: ' + err.message);
+    }
+  };
+
+  // Eliminar elemento de la lista local
+  const handleDeletePackage = (id) => {
+    const updatedList = fullJsonData.filter((item) => item.id !== id);
+    setFullJsonData(updatedList);
+    setRawJsonText(JSON.stringify(updatedList, null, 2));
+  };
+
+  // 2. Ejecutar Commit en GitHub
+  const handleExecuteCommit = async () => {
+    setIsSubmitting(true);
+    setStatusMsg({ type: '', text: '' });
+
+    if (!githubToken) {
+      setStatusMsg({
+        type: 'error',
+        text: 'Se requiere iniciar sesión con GitHub Token desde la página de Login.'
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (jsonError) {
+      setStatusMsg({
+        type: 'error',
+        text: 'Corrige el error de sintaxis en el JSON antes de hacer commit.'
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      await applyJsonCrudOperation({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        path: FILE_PATH,
+        token: githubToken,
+        action: 'REPLACE_ALL',
+        item: fullJsonData,
+        commitMessage: `crud(packages): sync packages.json (${fullJsonData.length} items)`
+      });
+
+      setStatusMsg({ type: 'success', text: '¡Commit enviado exitosamente a packages.json!' });
+    } catch (err) {
+      setStatusMsg({ type: 'error', text: err.message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <>
-      {/* Sección Encabezado */}
-      <section className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Encabezado */}
+      <section className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-black/5 text-black font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest px-2.5 py-1 rounded border border-black/10 font-bold">
@@ -91,104 +216,77 @@ export default function PackageUploadPage() {
             </span>
           </div>
           <h1 className="font-['Space_Grotesk'] text-4xl md:text-5xl font-bold text-black tracking-tight">
-            Publicar Paquete UPM
+            Gestión de Paquetes UPM
           </h1>
           <p className="font-['Inter'] text-lg text-[#45464d] max-w-2xl mt-2">
-            Registra tu repositorio de Git (herramientas, shaders o librerías) compatible con Unity Package Manager para compartirlo con la comunidad.
+            Administra y publica paquetes de Unity (herramientas, shaders o librerías) en el archivo <code className="font-['JetBrains_Mono'] text-black font-semibold">packages.json</code>.
           </p>
+        </div>
+
+        {/* Botón de Commit Global */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExecuteCommit}
+            disabled={isSubmitting || isLoading || !!jsonError}
+            className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 disabled:opacity-40 transition-colors flex items-center gap-2 cursor-pointer shadow-md"
+          >
+            {isSubmitting ? (
+              <>
+                <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                <span>Enviando Commit...</span>
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-sm">cloud_upload</span>
+                <span>Guardar Cambios en GitHub</span>
+              </>
+            )}
+          </button>
         </div>
       </section>
 
-      {submitted ? (
-        /* Confirmación de éxito con opción de copiar JSON */
-        <section className="bg-white/40 backdrop-blur-md border border-black/10 rounded-xl p-12 text-center max-w-2xl mx-auto my-8">
-          <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-3xl">check</span>
+      {/* Mensajes de Feedback */}
+      {statusMsg.text && (
+        <div
+          className={`mb-6 p-4 rounded-xl border flex items-center justify-between font-['Inter'] text-sm ${
+            statusMsg.type === 'error'
+              ? 'bg-red-50 border-red-200 text-red-700'
+              : statusMsg.type === 'success'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-blue-50 border-blue-200 text-blue-800'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined">
+              {statusMsg.type === 'error' ? 'error' : statusMsg.type === 'success' ? 'check_circle' : 'info'}
+            </span>
+            <span>{statusMsg.text}</span>
           </div>
-          <h2 className="font-['Space_Grotesk'] text-2xl font-bold text-black mb-2">
-            ¡Paquete Registrado con Éxito!
-          </h2>
-          <p className="font-['Inter'] text-sm text-[#45464d] mb-6">
-            El paquete <code className="font-['JetBrains_Mono'] font-bold text-black">{formData.name}</code> está listo para incorporarse al archivo <code className="font-['JetBrains_Mono']">packages.json</code>.
-          </p>
+          <button onClick={() => setStatusMsg({ type: '', text: '' })} className="hover:opacity-75">
+            <span className="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      )}
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={copyToClipboardJson}
-              className="w-full sm:w-auto bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-sm">
-                {copiedJson ? 'check' : 'content_copy'}
-              </span>
-              <span>{copiedJson ? '¡JSON Copiado!' : 'Copiar Objeto JSON'}</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setSubmitted(false);
-                setFormData({
-                  name: '',
-                  category: 'Gráficos y Shaders',
-                  version: 'v1.0.0',
-                  description: '',
-                  gitUrl: '',
-                  unityVersion: '2022.3 LTS+',
-                  author: '',
-                  tags: '',
-                  readme: '',
-                  isOfficial: false,
-                  icon: 'extension'
-                });
-              }}
-              className="w-full sm:w-auto bg-white border border-black/10 text-black px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/5 transition-colors cursor-pointer"
-            >
-              Registrar Otro Paquete
-            </button>
-          </div>
-        </section>
+      {isLoading ? (
+        <div className="bg-white/40 backdrop-blur-md border border-black/10 rounded-xl p-12 text-center my-8">
+          <span className="material-symbols-outlined text-4xl animate-spin text-black mb-2">sync</span>
+          <p className="font-['JetBrains_Mono'] text-sm text-[#45464d]">Cargando packages.json desde GitHub...</p>
+        </div>
       ) : (
-        /* Formulario Principal */
-        <form onSubmit={handleSubmit} className="grid grid-cols-12 gap-8 mb-16">
-          
-          {/* Columna Izquierda: Información de integración Git & Vista Previa JSON */}
-          <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
-            {/* Caja Informativa sobre Repositorio Git */}
-            <div className="bg-white/40 backdrop-blur-md border border-black/10 rounded-xl p-6">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="material-symbols-outlined text-black">code_blocks</span>
-                <h3 className="font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold">
-                  Integración Directa vía Git
-                </h3>
-              </div>
-              <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed mb-4">
-                Los paquetes no almacenan archivos pesados localmente. Unity Package Manager se conecta directamente a la URL de tu repositorio de Git. Asegúrate de incluir la extensión <code className="font-['JetBrains_Mono'] text-black font-semibold">.git</code> al final del enlace.
-              </p>
-              <div className="bg-black/5 border border-black/10 rounded p-3 text-[11px] font-['JetBrains_Mono'] text-black/80">
-                <p className="font-bold mb-1">💡 Requisito UPM:</p>
-                <p>El repositorio en Git debe contener un archivo <code className="text-black font-bold">package.json</code> válido en la raíz de la rama principal.</p>
-              </div>
-            </div>
+        <div className="grid grid-cols-12 gap-8 mb-16">
+          {/* Columna Izquierda: Formulario para Agregar Nuevo Paquete */}
+          <div className="col-span-12 lg:col-span-6 bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6 md:p-8 flex flex-col justify-between space-y-6">
+            <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black border-b border-black/10 pb-3 flex items-center gap-2">
+              <span className="material-symbols-outlined">add_box</span>
+              Registrar Nuevo Paquete
+            </h2>
 
-            {/* Previsualizador JSON en Tiempo Real */}
-            <div className="bg-black text-white rounded-xl p-6 font-['JetBrains_Mono'] text-xs shadow-inner">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3 text-white/50 text-[10px] uppercase tracking-widest">
-                <span>Previsualización del packages.json</span>
-                <span className="material-symbols-outlined text-sm">terminal</span>
-              </div>
-              <pre className="overflow-x-auto text-emerald-400 font-normal leading-relaxed text-[11px] max-h-[350px] scrollbar-thin">
-                {JSON.stringify(generatedPayload, null, 2)}
-              </pre>
-            </div>
-          </div>
-
-          {/* Columna Derecha: Campos del Formulario */}
-          <div className="col-span-12 lg:col-span-7 bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6 md:p-8 flex flex-col justify-between space-y-6">
-            <div className="space-y-5">
-              
+            <form onSubmit={handleAddPackage} className="space-y-4">
               {/* Nombre y Versión */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 sm:col-span-8">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
                     Nombre del Paquete *
                   </label>
                   <input
@@ -198,11 +296,11 @@ export default function PackageUploadPage() {
                     placeholder="ej: @caliuug/core-renderer"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['Inter'] text-sm text-black placeholder:text-[#45464d]/50 outline-none transition-colors"
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-sm text-black outline-none transition-colors"
                   />
                 </div>
                 <div className="col-span-12 sm:col-span-4">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
                     Versión *
                   </label>
                   <input
@@ -212,14 +310,14 @@ export default function PackageUploadPage() {
                     placeholder="v1.0.0"
                     value={formData.version}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['JetBrains_Mono'] text-sm text-black outline-none transition-colors"
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-sm text-black outline-none transition-colors"
                   />
                 </div>
               </div>
 
-              {/* URL del Repositorio Git */}
+              {/* URL Git */}
               <div>
-                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
+                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
                   URL del Repositorio Git *
                 </label>
                 <input
@@ -232,21 +330,21 @@ export default function PackageUploadPage() {
                     handleInputChange(e);
                     setFormData((prev) => ({ ...prev, gitUrlManual: true }));
                   }}
-                  className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['JetBrains_Mono'] text-xs text-black placeholder:text-[#45464d]/50 outline-none transition-colors"
+                  className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none transition-colors"
                 />
               </div>
 
-              {/* Categoría e Icono */}
+              {/* Categoría e Ícono */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 sm:col-span-8">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
                     Categoría *
                   </label>
                   <select
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none transition-colors cursor-pointer"
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none cursor-pointer"
                   >
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>
@@ -256,8 +354,8 @@ export default function PackageUploadPage() {
                   </select>
                 </div>
                 <div className="col-span-12 sm:col-span-4">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
-                    Ícono (Material Symbol)
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                    Ícono
                   </label>
                   <div className="relative">
                     <input
@@ -266,140 +364,246 @@ export default function PackageUploadPage() {
                       placeholder="extension"
                       value={formData.icon}
                       onChange={handleInputChange}
-                      className="w-full bg-white/60 border border-black/10 focus:border-black rounded pl-4 pr-10 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none transition-colors"
+                      className="w-full bg-white/60 border border-black/10 focus:border-black rounded pl-3 pr-8 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
                     />
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-black text-lg">
+                    <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-black text-base">
                       {formData.icon || 'extension'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Versión de Unity y Autor */}
+              {/* Soporte Unity y Autor */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 sm:col-span-6">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
-                    Soporte de Versión Unity
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                    Soporte Unity
                   </label>
                   <input
                     type="text"
                     name="unityVersion"
-                    placeholder="ej: 2022.3 LTS+"
+                    placeholder="2022.3 LTS+"
                     value={formData.unityVersion}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none transition-colors"
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
                   />
                 </div>
                 <div className="col-span-12 sm:col-span-6">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
                     Autor / Comunidad
                   </label>
                   <input
                     type="text"
                     name="author"
-                    placeholder="ej: Unity Users Group Cali"
+                    placeholder="Unity Users Group Cali"
                     value={formData.author}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['Inter'] text-xs text-black outline-none transition-colors"
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-xs text-black outline-none"
                   />
                 </div>
               </div>
 
               {/* Resumen Corto */}
               <div>
-                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
+                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
                   Resumen Corto *
                 </label>
                 <textarea
                   name="description"
                   required
                   rows="2"
-                  placeholder="Descripción breve de la función principal de este paquete o herramienta..."
+                  placeholder="Descripción breve..."
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['Inter'] text-sm text-black placeholder:text-[#45464d]/50 outline-none transition-colors resize-none"
+                  className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-xs text-black outline-none resize-none"
                 ></textarea>
               </div>
 
-              {/* Etiquetas y Documentación */}
+              {/* Tags y Readme */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
-                    Etiquetas / Tags (Separadas por coma)
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                    Etiquetas (separadas por coma)
                   </label>
                   <input
                     type="text"
                     name="tags"
-                    placeholder="URP, Shaders, PBR, Lighting"
+                    placeholder="URP, Shaders, PBR"
                     value={formData.tags}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none transition-colors"
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
                   />
                 </div>
-
                 <div className="col-span-12">
-                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-2">
-                    Documentación / Resumen Readme
+                  <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                    Documentación / Readme
                   </label>
                   <textarea
                     name="readme"
-                    rows="3"
-                    placeholder="Detalles adicionales de instalación, dependencias o instrucciones de uso..."
+                    rows="2"
+                    placeholder="Instrucciones o notas adicionales..."
                     value={formData.readme}
                     onChange={handleInputChange}
-                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-4 py-2 font-['Inter'] text-sm text-black placeholder:text-[#45464d]/50 outline-none transition-colors resize-none"
+                    className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-xs text-black outline-none resize-none"
                   ></textarea>
                 </div>
               </div>
 
               {/* Checkbox Oficial */}
-              <div className="pt-1">
-                <label className="inline-flex items-center gap-3 cursor-pointer">
+              <div>
+                <label className="inline-flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     name="isOfficial"
                     checked={formData.isOfficial}
                     onChange={handleInputChange}
-                    className="w-4 h-4 rounded border-black/20 text-black focus:ring-0 cursor-pointer accent-black"
+                    className="w-4 h-4 rounded border-black/20 text-black accent-black cursor-pointer"
                   />
                   <span className="font-['Inter'] text-xs text-black font-medium">
-                    Marcar como paquete oficial / verificado por la comunidad
+                    Paquete Oficial / Verificado
                   </span>
                 </label>
               </div>
 
-            </div>
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full bg-black text-white px-6 py-2.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  <span>Agregar a la Lista Local</span>
+                </button>
+              </div>
+            </form>
+          </div>
 
-            {/* Acciones del formulario */}
-            <div className="pt-4 border-t border-black/10 flex items-center justify-end gap-4">
+          {/* Columna Derecha: Vista de Acordeón + Editor RAW */}
+          <div className="col-span-12 lg:col-span-6 flex flex-col gap-6">
+            {/* Control Toggle Acordeón vs Raw */}
+            <div className="flex items-center justify-between bg-white/40 backdrop-blur-md border border-black/10 rounded-xl p-3">
+              <span className="font-['JetBrains_Mono'] text-xs font-bold text-black uppercase tracking-wider pl-2">
+                Paquetes en Lista ({fullJsonData.length})
+              </span>
               <button
                 type="button"
-                className="px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest text-[#45464d] hover:text-black hover:bg-black/5 transition-colors cursor-pointer"
+                onClick={() => setIsRawEditing(!isRawEditing)}
+                className="bg-black/5 border border-black/10 px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs text-black hover:bg-black/10 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || !formData.name || !formData.gitUrl}
-                className="bg-black text-white px-8 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 disabled:opacity-40 transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
-                    <span>Procesando...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-sm">publish</span>
-                    <span>Publicar Paquete</span>
-                  </>
-                )}
+                <span className="material-symbols-outlined text-sm">
+                  {isRawEditing ? 'view_list' : 'code'}
+                </span>
+                <span>{isRawEditing ? 'Ver Acordeón' : 'Editar Raw JSON'}</span>
               </button>
             </div>
 
+            {/* Vista 1: Acordeón de Paquetes */}
+            {!isRawEditing ? (
+              <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">
+                {fullJsonData.length === 0 ? (
+                  <div className="bg-white/30 border border-dashed border-black/20 rounded-xl p-8 text-center text-[#45464d] font-['Inter'] text-sm">
+                    No hay paquetes cargados. Agrega uno con el formulario.
+                  </div>
+                ) : (
+                  fullJsonData.map((item) => {
+                    const isOpen = openAccordionId === item.id;
+                    return (
+                      <div
+                        key={item.id}
+                        className="bg-white/60 border border-black/10 rounded-xl overflow-hidden transition-all"
+                      >
+                        {/* Cabecera del Acordeón */}
+                        <div
+                          onClick={() => setOpenAccordionId(isOpen ? null : item.id)}
+                          className="p-4 flex items-center justify-between cursor-pointer hover:bg-black/5 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-black">
+                              {item.icon || 'extension'}
+                            </span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-['Space_Grotesk'] font-bold text-sm text-black">
+                                  {item.name}
+                                </h4>
+                                {item.isOfficial && (
+                                  <span className="bg-black text-white font-['JetBrains_Mono'] text-[9px] uppercase px-1.5 py-0.5 rounded font-bold">
+                                    Oficial
+                                  </span>
+                                )}
+                              </div>
+                              <p className="font-['JetBrains_Mono'] text-[11px] text-[#45464d]">
+                                {item.category} • {item.version}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePackage(item.id);
+                              }}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              title="Eliminar del lista"
+                            >
+                              <span className="material-symbols-outlined text-base">delete</span>
+                            </button>
+                            <span className="material-symbols-outlined text-black">
+                              {isOpen ? 'expand_less' : 'expand_more'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Contenido Expandible */}
+                        {isOpen && (
+                          <div className="px-4 pb-4 pt-1 border-t border-black/5 font-['Inter'] text-xs text-[#45464d] space-y-2 bg-white/30">
+                            <p><strong>Descripción:</strong> {item.description}</p>
+                            <p><strong>Git URL:</strong> <code className="font-['JetBrains_Mono'] text-black">{item.gitUrl}</code></p>
+                            <p><strong>Autor:</strong> {item.author || 'N/A'} | <strong>Unity:</strong> {item.unityVersion}</p>
+                            {item.tags && item.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 pt-1">
+                                {item.tags.map((tag, idx) => (
+                                  <span key={idx} className="bg-black/5 text-black font-['JetBrains_Mono'] text-[10px] px-2 py-0.5 rounded border border-black/10">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            ) : (
+              /* Vista 2: Editor JSON RAW */
+              <div className="bg-black rounded-xl p-4 font-['JetBrains_Mono']">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3 text-white/50 text-[10px] uppercase tracking-widest">
+                  <span>Edición Directa JSON</span>
+                  {jsonError ? (
+                    <span className="text-red-400 font-bold">Sintaxis Inválida</span>
+                  ) : (
+                    <span className="text-emerald-400 font-bold">JSON Válido</span>
+                  )}
+                </div>
+                <textarea
+                  value={rawJsonText}
+                  onChange={handleRawJsonChange}
+                  rows={20}
+                  className="w-full bg-transparent text-emerald-400 font-['JetBrains_Mono'] text-xs outline-none resize-none leading-relaxed"
+                ></textarea>
+                {jsonError && (
+                  <div className="mt-2 text-xs text-red-400 border-t border-red-500/30 pt-2">
+                    {jsonError}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </form>
+        </div>
       )}
-    </>
+    </div>
   );
 }
