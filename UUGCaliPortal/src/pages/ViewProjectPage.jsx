@@ -226,11 +226,6 @@ export default function ViewProjectPage({
               </div>
             </div>
           </div>
-          {JSON.stringify(project, null, 2) && (
-            <pre className="lg:col-span-12 bg-black/5 p-4 rounded text-xs font-['JetBrains_Mono'] overflow-x-auto">
-              {JSON.stringify(project, null, 2)}
-            </pre>
-          )}
 
         </div>
       </div>
