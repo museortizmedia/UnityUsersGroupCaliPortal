@@ -6,6 +6,82 @@ const REPO_OWNER = 'museortizmedia';
 const REPO_NAME = 'UnityUsersGroupCaliPortal';
 const FILE_PATH = 'UUGCaliPortal/src/data/projects.json';
 
+// --- COMPONENTE REUTILIZABLE: TAG INPUT ---
+function TagInput({ tags = [], onChange, placeholder = 'Escribe y presiona Enter o coma...' }) {
+  const [inputValue, setInputValue] = useState('');
+
+  const addTag = (value) => {
+    const trimmed = value.trim().replace(/^,+|,+$/g, '');
+    if (trimmed && !tags.includes(trimmed)) {
+      onChange([...tags, trimmed]);
+    }
+    setInputValue('');
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(inputValue);
+    } else if (e.key === 'Backspace' && !inputValue && tags.length > 0) {
+      onChange(tags.slice(0, -1));
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text');
+    const newTags = pastedData
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => t && !tags.includes(t));
+
+    if (newTags.length > 0) {
+      onChange([...tags, ...newTags]);
+    }
+  };
+
+  const removeTag = (indexToRemove) => {
+    onChange(tags.filter((_, index) => index !== indexToRemove));
+  };
+
+  return (
+    <div className="w-full">
+      <div className="flex flex-wrap items-center gap-1.5 p-2 bg-white border border-black/10 focus-within:border-black rounded transition-colors min-h-[38px]">
+        {tags.map((tag, index) => (
+          <span
+            key={`${tag}-${index}`}
+            className="inline-flex items-center gap-1 bg-black text-white px-2 py-0.5 rounded font-['JetBrains_Mono'] text-[11px] font-medium"
+          >
+            <span>{tag}</span>
+            <button
+              type="button"
+              onClick={() => removeTag(index)}
+              className="hover:bg-white/20 rounded p-0.5 transition-colors cursor-pointer flex items-center justify-center border-none bg-transparent text-white"
+            >
+              <span className="material-symbols-outlined text-[12px]">close</span>
+            </button>
+          </span>
+        ))}
+
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          onBlur={() => inputValue && addTag(inputValue)}
+          placeholder={tags.length === 0 ? placeholder : ''}
+          className="flex-1 bg-transparent border-none outline-none font-['JetBrains_Mono'] text-xs text-black min-w-[100px] py-0.5"
+        />
+      </div>
+      <p className="font-['JetBrains_Mono'] text-[9px] text-[#45464d] mt-1">
+        Presiona <kbd className="bg-black/5 px-1 rounded font-bold">Enter</kbd> o <kbd className="bg-black/5 px-1 rounded font-bold">,</kbd> para agregar.
+      </p>
+    </div>
+  );
+}
+
+// --- COMPONENTE PRINCIPAL ---
 export default function UploadProjectPage() {
   const { githubToken } = useAuth();
 
@@ -19,18 +95,17 @@ export default function UploadProjectPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
 
-  // 1. Cargar datos iniciales
+  // Cargar datos iniciales
   useEffect(() => {
     const loadProjects = async () => {
       setIsLoading(true);
-      const token = localStorage.getItem('github_token');
 
       try {
         const { data } = await fetchJsonFromGithub({
           owner: REPO_OWNER,
           repo: REPO_NAME,
           path: FILE_PATH,
-          token: githubToken
+          token: githubToken,
         });
 
         const list = Array.isArray(data) ? data : [];
@@ -47,7 +122,6 @@ export default function UploadProjectPage() {
     loadProjects();
   }, [githubToken]);
 
-  // Sincronizar cambios en un item específico por su índice
   const handleItemChange = (index, updatedItem) => {
     const updatedList = [...fullJsonData];
     updatedList[index] = updatedItem;
@@ -55,7 +129,6 @@ export default function UploadProjectPage() {
     setRawJsonText(JSON.stringify(updatedList, null, 2));
   };
 
-  // Crear un nuevo objeto vacío al final de la lista
   const handleAddNewProject = () => {
     const newId = `proj-${Date.now()}`;
     const newProject = {
@@ -66,10 +139,14 @@ export default function UploadProjectPage() {
       description: '',
       status: 'Prototipo',
       version: 'v1.0.0',
+      license: 'MIT',
       tags: [],
       technologies: [],
       coverImage: '',
-      featured: false
+      downloadUrl: '',
+      githubUrl: '',
+      badge: '',
+      featured: false,
     };
 
     const updatedList = [...fullJsonData, newProject];
@@ -78,14 +155,12 @@ export default function UploadProjectPage() {
     setOpenAccordionId(newId);
   };
 
-  // Eliminar un proyecto por índice
   const handleDeleteProject = (indexToDelete) => {
     const updatedList = fullJsonData.filter((_, idx) => idx !== indexToDelete);
     setFullJsonData(updatedList);
     setRawJsonText(JSON.stringify(updatedList, null, 2));
   };
 
-  // Sincronizar Texto Negro -> Lista
   const handleRawJsonChange = (e) => {
     const text = e.target.value;
     setRawJsonText(text);
@@ -102,22 +177,24 @@ export default function UploadProjectPage() {
     }
   };
 
-  // Guardar cambios en GitHub
   const handleExecuteCommit = async () => {
     setIsSubmitting(true);
     setStatusMsg({ type: '', text: '' });
-    
+
     if (!githubToken) {
-      setStatusMsg({ 
-        type: 'error', 
-        text: 'Se requiere iniciar sesión con GitHub Token desde la página de Login.' 
+      setStatusMsg({
+        type: 'error',
+        text: 'Se requiere iniciar sesión con GitHub Token desde la página de Login.',
       });
       setIsSubmitting(false);
       return;
     }
-    
+
     if (jsonError) {
-      setStatusMsg({ type: 'error', text: 'Corrige el error de sintaxis en el JSON antes de hacer commit.' });
+      setStatusMsg({
+        type: 'error',
+        text: 'Corrige el error de sintaxis en el JSON antes de hacer commit.',
+      });
       setIsSubmitting(false);
       return;
     }
@@ -130,7 +207,7 @@ export default function UploadProjectPage() {
         token: githubToken,
         action: 'REPLACE_ALL',
         item: fullJsonData,
-        commitMessage: `crud(projects): sync projects.json (${fullJsonData.length} items)`
+        commitMessage: `crud(projects): sync projects.json (${fullJsonData.length} items)`,
       });
 
       setStatusMsg({ type: 'success', text: '¡Commit enviado exitosamente a projects.json!' });
@@ -160,21 +237,30 @@ export default function UploadProjectPage() {
       </div>
 
       {statusMsg.text && (
-        <div className={`p-4 rounded font-['JetBrains_Mono'] text-xs ${statusMsg.type === 'error' ? 'bg-red-100 text-red-800 border border-red-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-300'}`}>
+        <div
+          className={`p-4 rounded font-['JetBrains_Mono'] text-xs ${
+            statusMsg.type === 'error'
+              ? 'bg-red-100 text-red-800 border border-red-300'
+              : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+          }`}
+        >
           {statusMsg.text}
         </div>
       )}
 
       {/* Grid de 2 Columnas */}
       <div className="grid grid-cols-12 gap-6">
-        
         {/* Columna Izquierda: Lista de Acordeones */}
         <div className="col-span-12 lg:col-span-7 space-y-3">
           <div className="flex justify-between items-center px-1">
             <span className="font-['JetBrains_Mono'] text-xs uppercase font-bold text-black">
               Proyectos Registrados ({fullJsonData.length})
             </span>
-            {isLoading && <span className="font-['JetBrains_Mono'] text-xs text-amber-600 animate-pulse">Cargando...</span>}
+            {isLoading && (
+              <span className="font-['JetBrains_Mono'] text-xs text-amber-600 animate-pulse">
+                Cargando...
+              </span>
+            )}
           </div>
 
           {fullJsonData.map((project, index) => {
@@ -185,7 +271,7 @@ export default function UploadProjectPage() {
                 project={project}
                 index={index}
                 isOpen={isOpen}
-                onToggle={() => setOpenAccordionId(isOpen ? null : (project.id || index))}
+                onToggle={() => setOpenAccordionId(isOpen ? null : project.id || index)}
                 onChange={(updated) => handleItemChange(index, updated)}
                 onDelete={() => handleDeleteProject(index)}
               />
@@ -208,7 +294,9 @@ export default function UploadProjectPage() {
                 <span>Inspect & Commit</span>
                 <button
                   onClick={() => setIsRawEditing(!isRawEditing)}
-                  className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold cursor-pointer ${isRawEditing ? 'bg-amber-500 text-black' : 'bg-white/10 text-white'}`}
+                  className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold cursor-pointer ${
+                    isRawEditing ? 'bg-amber-500 text-black' : 'bg-white/10 text-white'
+                  }`}
                 >
                   {isRawEditing ? 'Bloquear Editor' : 'Modo Texto Libre'}
                 </button>
@@ -227,7 +315,9 @@ export default function UploadProjectPage() {
               value={rawJsonText}
               onChange={handleRawJsonChange}
               className={`w-full h-[500px] p-3 rounded text-xs font-['JetBrains_Mono'] leading-relaxed bg-black/60 outline-none resize-none scrollbar-thin ${
-                isRawEditing ? 'text-amber-300 border border-amber-500/50 focus:border-amber-400' : 'text-emerald-400 border border-white/10'
+                isRawEditing
+                  ? 'text-amber-300 border border-amber-500/50 focus:border-amber-400'
+                  : 'text-emerald-400 border border-white/10'
               }`}
             />
           </div>
@@ -240,26 +330,24 @@ export default function UploadProjectPage() {
             {isSubmitting ? <span>GUARDANDO COMMIT...</span> : <span>SUBIR COMMIT A GITHUB</span>}
           </button>
         </div>
-
       </div>
     </div>
   );
 }
 
-// Item del Acordeón para cada proyecto
+// --- ITEM DEL ACORDEÓN ---
 function ProjectAccordionItem({ project, index, isOpen, onToggle, onChange, onDelete }) {
   const [localData, setLocalData] = useState({
     ...project,
-    tags: Array.isArray(project.tags) ? project.tags.join(', ') : project.tags || '',
-    technologies: Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies || ''
+    tags: Array.isArray(project.tags) ? project.tags : [],
+    technologies: Array.isArray(project.technologies) ? project.technologies : [],
   });
 
-  // Mantener sincronizado si cambia desde el Panel Negro
   useEffect(() => {
     setLocalData({
       ...project,
-      tags: Array.isArray(project.tags) ? project.tags.join(', ') : project.tags || '',
-      technologies: Array.isArray(project.technologies) ? project.technologies.join(', ') : project.technologies || ''
+      tags: Array.isArray(project.tags) ? project.tags : [],
+      technologies: Array.isArray(project.technologies) ? project.technologies : [],
     });
   }, [project]);
 
@@ -268,15 +356,13 @@ function ProjectAccordionItem({ project, index, isOpen, onToggle, onChange, onDe
     const val = type === 'checkbox' ? checked : value;
     const updated = { ...localData, [name]: val };
     setLocalData(updated);
+    onChange(updated);
+  };
 
-    // Formatear arreglos para el JSON final
-    const formattedPayload = {
-      ...updated,
-      tags: typeof updated.tags === 'string' ? updated.tags.split(',').map(t => t.trim()).filter(Boolean) : updated.tags,
-      technologies: typeof updated.technologies === 'string' ? updated.technologies.split(',').map(t => t.trim()).filter(Boolean) : updated.technologies
-    };
-
-    onChange(formattedPayload);
+  const handleArrayChange = (field, newArray) => {
+    const updated = { ...localData, [field]: newArray };
+    setLocalData(updated);
+    onChange(updated);
   };
 
   return (
@@ -304,7 +390,7 @@ function ProjectAccordionItem({ project, index, isOpen, onToggle, onChange, onDe
               e.stopPropagation();
               onDelete();
             }}
-            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded text-xs font-['JetBrains_Mono'] font-bold transition-colors cursor-pointer"
+            className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded text-xs font-['JetBrains_Mono'] font-bold transition-colors cursor-pointer border-none"
             title="Eliminar Proyecto"
           >
             Eliminar
@@ -316,78 +402,225 @@ function ProjectAccordionItem({ project, index, isOpen, onToggle, onChange, onDe
       {/* Cuerpo Acordeón */}
       {isOpen && (
         <div className="p-5 space-y-4 bg-white">
+          {/* Identificación */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">ID Único</label>
-              <input type="text" name="id" value={localData.id || ''} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']" />
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                ID Único
+              </label>
+              <input
+                type="text"
+                name="id"
+                value={localData.id || ''}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']"
+              />
             </div>
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">Título *</label>
-              <input type="text" name="title" value={localData.title || ''} onChange={handleFieldChange} required className="w-full border p-2 text-xs rounded font-['Inter']" />
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Título *
+              </label>
+              <input
+                type="text"
+                name="title"
+                value={localData.title || ''}
+                onChange={handleFieldChange}
+                required
+                className="w-full border p-2 text-xs rounded font-['Inter']"
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          {/* Autoría y Categoría */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">Autor</label>
-              <input type="text" name="author" value={localData.author || ''} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['Inter']" />
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Autor
+              </label>
+              <input
+                type="text"
+                name="author"
+                value={localData.author || ''}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['Inter']"
+              />
             </div>
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">Categoría</label>
-              <input type="text" name="category" value={localData.category || ''} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['Inter']" />
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Categoría
+              </label>
+              <input
+                type="text"
+                name="category"
+                value={localData.category || ''}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['Inter']"
+              />
             </div>
+          </div>
+
+          {/* Estado, Versión y Licencia */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">Estado</label>
-              <select name="status" value={localData.status || 'Prototipo'} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['Inter']">
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Estado
+              </label>
+              <select
+                name="status"
+                value={localData.status || 'Prototipo'}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['Inter']"
+              >
                 <option value="Prototipo">Prototipo</option>
                 <option value="En Desarrollo">En Desarrollo</option>
                 <option value="Lanzado">Lanzado</option>
                 <option value="Archivado">Archivado</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Versión
+              </label>
+              <input
+                type="text"
+                name="version"
+                value={localData.version || ''}
+                onChange={handleFieldChange}
+                placeholder="v1.0.0"
+                className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Licencia
+              </label>
+              <select
+                name="license"
+                value={localData.license || 'MIT'}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['Inter']"
+              >
+                <option value="MIT">MIT License</option>
+                <option value="Apache-2.0">Apache 2.0</option>
+                <option value="GPL-3.0">GPL v3.0</option>
+                <option value="CC-BY-4.0">CC BY 4.0</option>
+                <option value="Propietaria">Propietaria / Reservado</option>
+              </select>
+            </div>
           </div>
 
+          {/* Descripción */}
           <div>
-            <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">Descripción</label>
-            <textarea name="description" rows="2" value={localData.description || ''} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['Inter']" />
+            <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+              Descripción
+            </label>
+            <textarea
+              name="description"
+              rows="2"
+              value={localData.description || ''}
+              onChange={handleFieldChange}
+              className="w-full border p-2 text-xs rounded font-['Inter']"
+              rows={6}
+            />
           </div>
 
+          {/* Tags y Tecnologías */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Tags / Etiquetas
+              </label>
+              <TagInput
+                tags={localData.tags}
+                onChange={(newTags) => handleArrayChange('tags', newTags)}
+                placeholder="Ej: Sci-Fi, Unity, Low-Poly..."
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Tecnologías / Stack
+              </label>
+              <TagInput
+                tags={localData.technologies}
+                onChange={(newTechs) => handleArrayChange('technologies', newTechs)}
+                placeholder="Ej: C#, Shader Graph, HLSL..."
+              />
+            </div>
+          </div>
+
+          {/* Imágenes y Badges */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">Tags (por coma)</label>
-              <input type="text" name="tags" value={localData.tags} onChange={handleFieldChange} placeholder="Unity, Sci-Fi" className="w-full border p-2 text-xs rounded font-['Inter']" />
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                URL Cover Image
+              </label>
+              <input
+                type="text"
+                name="coverImage"
+                value={localData.coverImage || ''}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']"
+              />
             </div>
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">Tecnologías (por coma)</label>
-              <input type="text" name="technologies" value={localData.technologies} onChange={handleFieldChange} placeholder="C#, Shader Graph" className="w-full border p-2 text-xs rounded font-['Inter']" />
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                Badge (Opcional)
+              </label>
+              <input
+                type="text"
+                name="badge"
+                value={localData.badge || ''}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['Inter']"
+              />
             </div>
           </div>
 
+          {/* Enlaces externos */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">URL Cover Image</label>
-              <input type="text" name="coverImage" value={localData.coverImage || ''} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']" />
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                URL Descarga / Demo
+              </label>
+              <input
+                type="text"
+                name="downloadUrl"
+                value={localData.downloadUrl || ''}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']"
+              />
             </div>
+
             <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">Badge (Opcional)</label>
-              <input type="text" name="badge" value={localData.badge || ''} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['Inter']" />
+              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">
+                URL Repo GitHub
+              </label>
+              <input
+                type="text"
+                name="githubUrl"
+                value={localData.githubUrl || ''}
+                onChange={handleFieldChange}
+                className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']"
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">URL Descarga / Demo</label>
-              <input type="text" name="downloadUrl" value={localData.downloadUrl || ''} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-['JetBrains_Mono'] uppercase font-bold mb-1">URL Repo GitHub</label>
-              <input type="text" name="githubUrl" value={localData.githubUrl || ''} onChange={handleFieldChange} className="w-full border p-2 text-xs rounded font-['JetBrains_Mono']" />
-            </div>
-          </div>
-
+          {/* Checkbox Destacado */}
           <div className="flex items-center gap-2 pt-1">
-            <input type="checkbox" id={`featured-${index}`} name="featured" checked={localData.featured || false} onChange={handleFieldChange} className="rounded" />
-            <label htmlFor={`featured-${index}`} className="text-xs font-['JetBrains_Mono'] font-bold cursor-pointer">
+            <input
+              type="checkbox"
+              id={`featured-${index}`}
+              name="featured"
+              checked={localData.featured || false}
+              onChange={handleFieldChange}
+              className="rounded cursor-pointer"
+            />
+            <label
+              htmlFor={`featured-${index}`}
+              className="text-xs font-['JetBrains_Mono'] font-bold cursor-pointer"
+            >
               Proyecto Destacado
             </label>
           </div>

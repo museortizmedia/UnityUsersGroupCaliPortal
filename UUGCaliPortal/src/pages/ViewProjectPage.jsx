@@ -80,34 +80,17 @@ export default function ViewProjectPage({
               </div>
 
               <h1 className="font-['Space_Grotesk'] text-3xl md:text-5xl font-bold leading-tight">
-                {project.title ?? 'Sin Título'}
+                {project.title ?? 'Proyecto sin título'}
               </h1>
             </div>
 
             {/* BOTONES PRINCIPALES DE ACCIÓN */}
             <div className="flex flex-wrap gap-3 w-full md:w-auto">
-              {project.demoUrl ? (
-                <a
-                  href={project.demoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 md:flex-none text-center bg-white text-black px-6 py-3 rounded text-xs font-['JetBrains_Mono'] uppercase tracking-widest hover:bg-neutral-200 transition-colors cursor-pointer font-bold flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-[18px]">play_arrow</span>
-                  Launch WebGL
-                </a>
-              ) : (
-                <button
-                  disabled
-                  className="flex-1 md:flex-none bg-white/20 text-white/50 px-6 py-3 rounded text-xs font-['JetBrains_Mono'] uppercase tracking-widest cursor-not-allowed border border-white/10"
-                >
-                  Demo No Disponible
-                </button>
-              )}
 
               {project.downloadUrl && (
                 <a
                   href={project.downloadUrl}
+                  target="_blank"
                   download
                   className="flex-1 md:flex-none text-center bg-emerald-500 text-black px-6 py-3 rounded text-xs font-['JetBrains_Mono'] uppercase tracking-widest hover:bg-emerald-400 transition-colors cursor-pointer font-bold flex items-center justify-center gap-2"
                 >
@@ -125,17 +108,17 @@ export default function ViewProjectPage({
           <div className="lg:col-span-8 space-y-8">
             <div>
               <h2 className="font-['Space_Grotesk'] text-xl font-bold mb-3 text-black">
-                Project Overview
+                Resumen del Proyecto
               </h2>
               <p className="font-['Inter'] text-[#45464d] leading-relaxed whitespace-pre-line text-sm md:text-base">
-                {project.description || 'No hay descripción disponible para este proyecto.'}
+                {project.description || 'No hay una descripción detallada para este proyecto todavía.'}
               </p>
             </div>
 
             {Array.isArray(project.technologies) && project.technologies.length > 0 && (
               <div>
                 <h3 className="font-['Space_Grotesk'] text-lg font-bold mb-3 text-black">
-                  Tech Specs & Stack
+                  Arquitectura y Tecnologías
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {project.technologies.map((tech) => (
@@ -153,7 +136,7 @@ export default function ViewProjectPage({
             {Array.isArray(project.tags) && project.tags.length > 0 && (
               <div>
                 <h3 className="font-['Space_Grotesk'] text-sm font-bold mb-2 text-black/70 uppercase font-['JetBrains_Mono']">
-                  Tags & Taxonomy
+                  Etiquetas y Clasificación
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
                   {project.tags.map((tag) => (
@@ -178,12 +161,12 @@ export default function ViewProjectPage({
                   sports_esports
                 </span>
                 <h3 className="font-['Space_Grotesk'] font-bold text-base">
-                  Builds & Downloads
+                  Versiones y Descargas
                 </h3>
               </div>
 
               <p className="font-['Inter'] text-xs text-white/70">
-                Obtén la build ejecutable del proyecto o inspecciona su repositorio.
+                Obtén el ejecutable optimizado o explora el código fuente del proyecto.
               </p>
 
               <div className="space-y-2 pt-2">
@@ -195,7 +178,7 @@ export default function ViewProjectPage({
                     download
                     className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-['JetBrains_Mono'] font-bold text-xs uppercase py-2.5 px-4 rounded flex items-center justify-between transition-colors"
                   >
-                    <span>Descargar Build</span>
+                    <span>Descargar Compilación</span>
                     <span className="material-symbols-outlined text-[18px]">download</span>
                   </a>
                 ) : (
@@ -221,28 +204,33 @@ export default function ViewProjectPage({
             {/* TABLA DE DETALLES */}
             <div className="bg-white p-6 rounded-xl border border-black/10 space-y-4 shadow-sm">
               <h3 className="font-['Space_Grotesk'] text-lg font-bold border-b border-black/10 pb-2 text-black">
-                Project Details
+                Ficha Técnica
               </h3>
               <div className="font-['JetBrains_Mono'] text-xs space-y-3 text-[#45464d]">
                 <div className="flex justify-between items-center">
-                  <span>Author:</span>
+                  <span>Autor:</span>
                   <strong className="text-black font-semibold">{project.author ?? 'Desconocido'}</strong>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>Version:</span>
+                  <span>Versión:</span>
                   <strong className="text-black font-semibold">{project.version ?? 'v1.0.0'}</strong>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>Status:</span>
+                  <span>Estado:</span>
                   <strong className="text-black font-semibold uppercase">{project.status ?? 'N/A'}</strong>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>License:</span>
+                  <span>Licencia:</span>
                   <strong className="text-black font-semibold">{project.license ?? 'MIT'}</strong>
                 </div>
               </div>
             </div>
           </div>
+          {JSON.stringify(project, null, 2) && (
+            <pre className="lg:col-span-12 bg-black/5 p-4 rounded text-xs font-['JetBrains_Mono'] overflow-x-auto">
+              {JSON.stringify(project, null, 2)}
+            </pre>
+          )}
 
         </div>
       </div>
