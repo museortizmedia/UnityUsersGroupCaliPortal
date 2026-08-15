@@ -72,7 +72,7 @@ export default function MainPage({ setActiveTab }) {
           <img
             alt="Logo CaliUUG"
             className="relative z-10 w-3/4 max-w-[280px] object-contain transition-transform duration-300 hover:scale-105"
-            src="/src/assets/UUGCali-Icon.png"
+            src="/UnityUsersGroupCaliPortal/src/assets/UUGCali-Icon.png"
             draggable="false"
           />
         </div>
