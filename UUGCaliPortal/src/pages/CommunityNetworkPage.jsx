@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useHeader } from '../context/HeaderContext';
 import { useEvents } from '../hooks/useEvents';
 import membersDataRaw from '../data/members.json';
@@ -30,10 +30,44 @@ export default function CommunityNetworkPage() {
     const [page, setPage] = useState(0);
     const [copied, setCopied] = useState(false);
     const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+    const [fetchedXml, setFetchedXml] = useState('');
+
+    // Interceptador / Lector de feed.xml estático
+    useEffect(() => {
+        const checkAndFetchFeed = async () => {
+            const pathname = window.location.pathname;
+            const hash = window.location.hash;
+
+            const isFeedPath = pathname.endsWith('/feed.xml') || hash === '#/feed.xml' || hash === '#feed.xml';
+
+            try {
+                const baseUrl = import.meta.env.BASE_URL.endsWith('/')
+                    ? import.meta.env.BASE_URL
+                    : `${import.meta.env.BASE_URL}/`;
+
+                const response = await fetch(`${baseUrl}feed.xml`);
+                if (response.ok) {
+                    const xmlText = await response.text();
+                    setFetchedXml(xmlText);
+
+                    // Si la URL apunta explícitamente a feed.xml, reemplaza el documento
+                    if (isFeedPath) {
+                        document.open();
+                        document.write(xmlText);
+                        document.close();
+                    }
+                }
+            } catch (error) {
+                console.error('Error al cargar feed.xml:', error);
+            }
+        };
+
+        checkAndFetchFeed();
+    }, []);
 
     // Filtrar eventos únicamente pertenecientes al mes en curso
     const filteredEvents = useMemo(() => {
-        const currentMonthIndex = new Date().getMonth(); // 0-indexed (ej: 7 para Agosto)
+        const currentMonthIndex = new Date().getMonth();
 
         return eventsData.filter((event) => {
             if (!event.date) return false;
@@ -64,14 +98,17 @@ export default function CommunityNetworkPage() {
             ? import.meta.env.BASE_URL
             : `${import.meta.env.BASE_URL}/`;
 
-        const jsonEndpoint = `${window.location.origin}${baseUrl}events.json`;
+        const rssEndpoint = `${window.location.origin}${baseUrl}feed.xml`;
 
-        navigator.clipboard.writeText(jsonEndpoint);
+        navigator.clipboard.writeText(rssEndpoint);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
     const featuredMembers = membersData.slice(0, 4);
+
+    // Contenido a mostrar en el bloque de código RSS
+    const rssPreviewText = fetchedXml || '-';
 
     return (
         <div className="space-y-6">
@@ -151,7 +188,7 @@ export default function CommunityNetworkPage() {
                             <button
                                 onClick={handleNext}
                                 disabled={page >= totalPages - 1 || loading}
-                                className="w-8 h-8 rounded border border-[#c6c6cd] flex items-center justify-center text-[#45464d] hover:border-black hover:text-black transition-colors disabled:opacity-30 disabled:hover:border-[#c6c6cd] disabled:hover:text-[#45464d] cursor-pointer disabled:cursor-not-allowed"
+                                className="w-8 h-8 rounded border border-[#c6c6cd] flex items-center justify-center text-[#45464d] hover:border-black hover:text-black transition-colors disabled:opacity-[#c6c6cd] disabled:hover:text-[#45464d] cursor-pointer disabled:cursor-not-allowed"
                             >
                                 <span className="material-symbols-outlined text-sm">
                                     chevron_right
@@ -204,7 +241,7 @@ export default function CommunityNetworkPage() {
                     </div>
                 </section>
 
-                {/* Previsualización del JSON Endpoint */}
+                {/* Previsualización del RSS Feed Endpoint */}
                 <section className="md:col-span-12 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-black/10 pb-4">
                         <div>
@@ -213,7 +250,7 @@ export default function CommunityNetworkPage() {
                                 Feed RSS de Eventos (Mes Actual)
                             </h2>
                             <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
-                                Suscripción RSS accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">events.json</code>.
+                                Suscripción RSS accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">feed.xml</code>.
                             </p>
                         </div>
                         <button
@@ -223,31 +260,17 @@ export default function CommunityNetworkPage() {
                             <span className="material-symbols-outlined text-sm">
                                 {copied ? 'check' : 'content_copy'}
                             </span>
-                            {copied ? '¡URL Copiada!' : 'Copiar URL del Feed RSS'}
+                            {copied ? '¡URL Copiada!' : 'Copiar URL'}
                         </button>
                     </div>
 
                     <div className="bg-[#1e1e1e] border border-black/20 rounded-lg p-4 font-['JetBrains_Mono'] text-xs flex flex-col">
                         <div className="text-gray-400 mb-2 border-b border-gray-700 pb-2 flex justify-between items-center text-[10px]">
-                            <span>GET /events.json</span>
-                            <span className="text-emerald-400">200 OK (application/json)</span>
+                            <span>GET /feed.xml</span>
+                            <span className="text-emerald-400">200 OK (application/xml)</span>
                         </div>
                         <pre className="m-0 leading-relaxed text-[#d4d4d4] max-h-[300px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700">
-                            <code>
-                                {`<?xml version="1.0" encoding="UTF-8" ?>
-<rss version="2.0">
-  <channel>
-    <title>Eventos del Mes</title>
-    <link>${window.location.origin}</link>
-    <description>Eventos y talleres programados para este mes</description>
-${filteredEvents.map(event => `    <item>
-      <title>${event.title || 'Evento'}</title>
-      <pubDate>${event.date || ''}</pubDate>
-      <description>${event.location || ''} - ${event.time || ''}</description>
-    </item>`).join('\n')}
-  </channel>
-</rss>`}
-                            </code>
+                            <code>{rssPreviewText}</code>
                         </pre>
                     </div>
                 </section>

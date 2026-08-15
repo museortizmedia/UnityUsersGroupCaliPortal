@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Unity Users Group Cali — Eventos</title>
+    <link>https://museortizmedia.github.io/UnityUsersGroupCaliPortal</link>
+    <description>Comunidad de desarrollo de videojuegos, simulaciones e interactivación 3D en Cali, Colombia.</description>
+    <language>es-co</language>
+    <atom:link href="https://museortizmedia.github.io/UnityUsersGroupCaliPortal/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title><![CDATA[Evento prueba]]></title>
+      <link>https://www.google.com</link>
+      <guid isPermaLink="false">uugc-event-1</guid>
+      <description><![CDATA[Fecha: 15 AGO | Hora: 6:30 PM - 7:30 PM | Lugar: Sitio de Prueba]]></description>
+      <pubDate>15 AGO</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -86,7 +86,7 @@ const PAGE_HEADER_CONFIG = {
   library: { showLogo: true, showSearch: true, category: 'Projects' },
 };
 
-// Helper para extraer la ruta limpia desde el hash (ejemplo: "#/packages" -> "/packages")
+// Helper para extraer la ruta limpia desde el hash
 const getHashPath = () => {
   const hash = window.location.hash.replace(/^#/, '');
   return hash || '/';
@@ -94,6 +94,34 @@ const getHashPath = () => {
 
 function AppContent() {
   const { setShowLogo, setShowSearch, setActiveCategory, setSearchQuery } = useHeader();
+
+  // Interceptador para servir feed.xml estático directamente en localhost/desarrollo
+  useEffect(() => {
+    const checkFeed = async () => {
+      const pathname = window.location.pathname;
+      const hash = window.location.hash;
+
+      if (pathname.endsWith('/feed.xml') || hash === '#/feed.xml' || hash === '#feed.xml') {
+        try {
+          const baseUrl = import.meta.env.BASE_URL.endsWith('/')
+            ? import.meta.env.BASE_URL
+            : `${import.meta.env.BASE_URL}/`;
+            
+          const response = await fetch(`${baseUrl}feed.xml`);
+          if (response.ok) {
+            const xmlText = await response.text();
+            document.open();
+            document.write(xmlText);
+            document.close();
+          }
+        } catch (error) {
+          console.error('Error al cargar feed.xml:', error);
+        }
+      }
+    };
+
+    checkFeed();
+  }, []);
 
   // Inicialización leyendo la ruta contenida en el hash de la URL
   const [activeTab, setActiveTabState] = useState(() => {
@@ -128,7 +156,7 @@ function AppContent() {
     }
   };
 
-  // Escucha los cambios manuales en el hash (botones de retroceso/avance del navegador)
+  // Escucha los cambios manuales en el hash
   useEffect(() => {
     const handleHashChange = () => {
       const currentHashPath = getHashPath();
