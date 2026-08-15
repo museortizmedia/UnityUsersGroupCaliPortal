@@ -1,0 +1,67 @@
+name: Deploy UUGCaliPortal to GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  repository_dispatch:
+    types: [update-json-data]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  update-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      # Actualiza el JSON objetivo dentro de UUGCaliPortal
+      - name: Actualizar archivo JSON en el repositorio
+        if: github.event_name == 'repository_dispatch'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const payload = context.payload.client_payload;
+            const filePath = `./UUGCaliPortal/src/data/${payload.fileName}`;
+            
+            fs.writeFileSync(filePath, JSON.stringify(payload.data, null, 2));
+
+      # Hace commit y push automático a la rama main
+      - name: Guardar cambios en Git
+        if: github.event_name == 'repository_dispatch'
+        run: |
+          git config --global user.name "Diego Ortiz"
+          git config --global user.email "museortiz@gmail.com"
+          git add .
+          git commit -m "chore(cms): actualización de contenido desde UUGCaliPortal [skip ci]" || exit 0
+          git push
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Comandos ejecutados dentro de UUGCaliPortal
+      - name: Instalar dependencias
+        working-directory: ./UUGCaliPortal
+        run: npm ci
+
+      - name: Compilar aplicación React
+        working-directory: ./UUGCaliPortal
+        run: npm run build
+
+      - name: Cargar artefacto para Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './UUGCaliPortal/dist'
+
+      - name: Publicar en GitHub Pages
+        uses: actions/deploy-pages@v4

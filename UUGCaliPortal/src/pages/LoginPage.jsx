@@ -4,25 +4,33 @@ import { useAuth } from '../context/AuthContext';
 export default function LoginPage({ setActiveTab }) {
   const { login, isLoggedIn } = useAuth();
 
-  if(isLoggedIn) { setActiveTab('profile'); return null; } // Redirige al perfil si ya está logueado
+  // Redirige al perfil si ya está autenticado
+  if (isLoggedIn) {
+    setActiveTab('profile');
+    return null;
+  }
 
-  // Estados de formulario
+  // Estados del formulario
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [githubToken, setGithubToken] = useState('');
+  const [showToken, setShowToken] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
     setErrorMessage('');
 
-    // Validación básica enviada al AuthContext
-    const success = login(email, password);
+    if (!githubToken.startsWith('github_pat_') && !githubToken.startsWith('ghp_')) {
+      setErrorMessage('Ingresa un Personal Access Token de GitHub válido (comienza con ghp_ o github_pat_).');
+      return;
+    }
+
+    const success = login(email, githubToken);
 
     if (success) {
       setActiveTab('profile');
     } else {
-      setErrorMessage('Invalid credentials. Check your email or password.');
+      setErrorMessage('Credenciales no válidas. Revisa tu correo o tu Access Token.');
     }
   };
 
@@ -30,10 +38,10 @@ export default function LoginPage({ setActiveTab }) {
     <div className="max-w-md mx-auto py-12">
       <div className="bg-white p-8 rounded-xl border border-black/10 shadow-sm">
         <h1 className="font-['Space_Grotesk'] text-2xl font-bold text-black mb-2">
-          Administrator Login
+          Acceso Administrador
         </h1>
-        <p className="text-sm text-[#45464d] mb-6 font-['JetBrains_Mono']">
-          Accounts enabled to manage and moderate platform content, as well as to manage user accounts and permissions.
+        <p className="text-sm text-[#45464d] mb-6 font-['JetBrains_Mono'] leading-relaxed">
+          Inicia sesión con tu token de GitHub para moderar contenidos, gestionar la vitrina y autorizar commits automáticos en los archivos del sistema.
         </p>
 
         {errorMessage && (
@@ -46,7 +54,7 @@ export default function LoginPage({ setActiveTab }) {
         <form onSubmit={handleLogin} className="space-y-4 font-['JetBrains_Mono'] text-xs">
           {/* Email */}
           <div>
-            <label className="block mb-1 text-black font-medium">Email</label>
+            <label className="block mb-1 text-black font-medium">Correo Electrónico</label>
             <input
               type="email"
               value={email}
@@ -57,26 +65,36 @@ export default function LoginPage({ setActiveTab }) {
             />
           </div>
 
-          {/* Password con Ojito */}
+          {/* GitHub Access Token */}
           <div>
-            <label className="block mb-1 text-black font-medium">Password</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-black font-medium">GitHub Access Token</label>
+              <a
+                href="https://github.com/settings/tokens?type=beta"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-black/50 hover:text-black underline"
+              >
+                ¿Cómo obtenerlo?
+              </a>
+            </div>
             <div className="relative flex items-center">
               <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                type={showToken ? 'text' : 'password'}
+                value={githubToken}
+                onChange={(e) => setGithubToken(e.target.value)}
+                placeholder="ghp_xxxxxxxxxxxx o github_pat_..."
                 required
                 className="w-full pl-3 pr-10 py-2 border border-black/20 rounded focus:border-black outline-none transition-colors"
               />
               <button
                 type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={() => setShowToken((prev) => !prev)}
                 className="absolute right-2.5 text-black/50 hover:text-black transition-colors cursor-pointer flex items-center"
-                title={showPassword ? 'Hide password' : 'Show password'}
+                title={showToken ? 'Ocultar token' : 'Mostrar token'}
               >
                 <span className="material-symbols-outlined text-xs">
-                  {showPassword ? 'visibility_off' : 'visibility'}
+                  {showToken ? 'visibility_off' : 'visibility'}
                 </span>
               </button>
             </div>
@@ -86,7 +104,7 @@ export default function LoginPage({ setActiveTab }) {
             type="submit"
             className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer uppercase font-bold tracking-widest mt-2"
           >
-            Log In
+            Iniciar Sesión
           </button>
         </form>
       </div>
