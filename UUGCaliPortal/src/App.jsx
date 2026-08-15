@@ -19,19 +19,7 @@ import UpdateProjectPage from './pages/UploadProjectPage';
 import PackageRegistryPage from './pages/PackageRegistryPage';
 import PackageUploadPage from './pages/PackageUploadPage';
 
-// Normalizamos BASE_URL quitando barra final si existe
-const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
-
-// Función auxiliar para obtener la ruta relativa sin el subdirectorio de GH Pages
-const getRelativePath = (pathname) => {
-  if (BASE_PATH && pathname.startsWith(BASE_PATH)) {
-    const rel = pathname.slice(BASE_PATH.length);
-    return rel === '' ? '/' : rel;
-  }
-  return pathname || '/';
-};
-
-// 1. Mapeo entre URLs y Vistas
+// 1. Mapeo entre URLs en el Hash y Vistas
 const ROUTE_MAP = {
   '/': 'main',
   '/login': 'login',
@@ -83,12 +71,19 @@ const PAGE_HEADER_CONFIG = {
   library: { showLogo: true, showSearch: true, category: 'Projects' },
 };
 
+// Helper para extraer la ruta limpia desde el hash (ejemplo: "#/packages" -> "/packages")
+const getHashPath = () => {
+  const hash = window.location.hash.replace(/^#/, '');
+  return hash || '/';
+};
+
 function AppContent() {
   const { setShowLogo, setShowSearch, setActiveCategory, setSearchQuery } = useHeader();
 
+  // Inicialización leyendo la ruta contenida en el hash de la URL
   const [activeTab, setActiveTabState] = useState(() => {
-    const currentPath = getRelativePath(window.location.pathname);
-    return ROUTE_MAP[currentPath] || 'main';
+    const currentHashPath = getHashPath();
+    return ROUTE_MAP[currentHashPath] || 'main';
   });
 
   // Estados globales para los elementos seleccionados
@@ -109,28 +104,24 @@ function AppContent() {
     setSearchQuery('');
   }, [activeTab, setShowLogo, setShowSearch, setActiveCategory, setSearchQuery]);
 
+  // Cambia la pestaña y actualiza el Hash de la barra de navegación
   const setActiveTab = (tabId, shouldPushState = true) => {
     setActiveTabState(tabId);
     if (shouldPushState) {
       const path = TAB_TO_PATH[tabId] || '/';
-      // Construye la URL completa concatenando el BASE_PATH
-      const fullPath = `${BASE_PATH}${path}`;
-      window.history.pushState({ tabId }, '', fullPath);
+      window.location.hash = path;
     }
   };
 
+  // Escucha los cambios manuales en el hash (botones de retroceso/avance del navegador)
   useEffect(() => {
-    const handlePopState = (event) => {
-      if (event.state && event.state.tabId) {
-        setActiveTabState(event.state.tabId);
-      } else {
-        const path = getRelativePath(window.location.pathname);
-        setActiveTabState(ROUTE_MAP[path] || 'main');
-      }
+    const handleHashChange = () => {
+      const currentHashPath = getHashPath();
+      setActiveTabState(ROUTE_MAP[currentHashPath] || 'main');
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const renderPage = () => {
