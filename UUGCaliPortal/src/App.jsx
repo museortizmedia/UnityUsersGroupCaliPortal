@@ -19,6 +19,18 @@ import UpdateProjectPage from './pages/UploadProjectPage';
 import PackageRegistryPage from './pages/PackageRegistryPage';
 import PackageUploadPage from './pages/PackageUploadPage';
 
+// Normalizamos BASE_URL quitando barra final si existe
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// Función auxiliar para obtener la ruta relativa sin el subdirectorio de GH Pages
+const getRelativePath = (pathname) => {
+  if (BASE_PATH && pathname.startsWith(BASE_PATH)) {
+    const rel = pathname.slice(BASE_PATH.length);
+    return rel === '' ? '/' : rel;
+  }
+  return pathname || '/';
+};
+
 // 1. Mapeo entre URLs y Vistas
 const ROUTE_MAP = {
   '/': 'main',
@@ -75,13 +87,13 @@ function AppContent() {
   const { setShowLogo, setShowSearch, setActiveCategory, setSearchQuery } = useHeader();
 
   const [activeTab, setActiveTabState] = useState(() => {
-    const currentPath = window.location.pathname;
+    const currentPath = getRelativePath(window.location.pathname);
     return ROUTE_MAP[currentPath] || 'main';
   });
 
   // Estados globales para los elementos seleccionados
   const [selectedProjectId, setSelectedProjectId] = useState(null);
-  const [selectedPackage, setSelectedPackage] = useState(null); // Corregido: Declaración de estado para paquete
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
   // Efecto que actualiza la configuración del Header según el diccionario
   useEffect(() => {
@@ -94,14 +106,16 @@ function AppContent() {
     setShowLogo(config.showLogo ?? true);
     setShowSearch(config.showSearch ?? false);
     setActiveCategory(config.category ?? 'Engine');
-    setSearchQuery(''); // Limpiar búsqueda
+    setSearchQuery('');
   }, [activeTab, setShowLogo, setShowSearch, setActiveCategory, setSearchQuery]);
 
   const setActiveTab = (tabId, shouldPushState = true) => {
     setActiveTabState(tabId);
     if (shouldPushState) {
       const path = TAB_TO_PATH[tabId] || '/';
-      window.history.pushState({ tabId }, '', path);
+      // Construye la URL completa concatenando el BASE_PATH
+      const fullPath = `${BASE_PATH}${path}`;
+      window.history.pushState({ tabId }, '', fullPath);
     }
   };
 
@@ -110,7 +124,7 @@ function AppContent() {
       if (event.state && event.state.tabId) {
         setActiveTabState(event.state.tabId);
       } else {
-        const path = window.location.pathname;
+        const path = getRelativePath(window.location.pathname);
         setActiveTabState(ROUTE_MAP[path] || 'main');
       }
     };
