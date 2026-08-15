@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useEvents } from '../hooks/useEvents';
 import { useHeader } from '../context/HeaderContext';
+import { useAuth } from '../context/AuthContext';
 
 const EVENTS_PER_PAGE = 6;
 
@@ -25,6 +26,7 @@ const parseEventDate = (dateStr) => {
 };
 
 export default function EventsPage({ setActiveTab, onSelectEvent }) {
+  const { isLoggedIn } = useAuth();
   const { eventsData = [], loading } = useEvents();
   const { searchQuery, activeCategory } = useHeader();
 
@@ -111,7 +113,7 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <section className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="font-['Space_Grotesk'] text-3xl md:text-5xl font-semibold text-black mb-2">
             Todos los Eventos
@@ -120,7 +122,19 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
             Explora la agenda completa de meetups, talleres y showrooms de la comunidad.
           </p>
         </div>
-      </header>
+
+        <div className="flex items-center gap-3 shrink-0">
+          {isLoggedIn && (
+            <button
+              className="bg-transparent text-black px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-[#f6f3f5] transition-colors border border-black/10 backdrop-blur-md flex items-center gap-2 cursor-pointer"
+              onClick={() => setActiveTab && setActiveTab('event-update')}
+            >
+              <span className="material-symbols-outlined text-sm">edit_calendar</span>
+              <span>Publicar Evento</span>
+            </button>
+          )}
+        </div>
+      </section>
 
       {/* Barra de Filtros Locales */}
       <div className="bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-4 flex flex-col md:flex-row gap-4 justify-between items-center">
@@ -193,53 +207,70 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
         </div>
       ) : currentEvents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {currentEvents.map((event) => (
-            <div
-              key={event.id || event.title}
-              className={`flex flex-col justify-between p-5 bg-white/80 backdrop-blur-xl rounded-xl border border-black/10 hover:border-black/30 transition-all ${
-                event.featured ? 'border-l-4 border-l-black' : ''
-              }`}
-            >
-              <div>
-                <div className="flex justify-between items-start gap-2 mb-2">
-                  <span className="font-['JetBrains_Mono'] text-xs text-[#45464d] font-semibold uppercase tracking-wider bg-[#f6f3f5] px-2 py-0.5 rounded">
-                    {event.date || 'PRÓXIMAMENTE'}
-                  </span>
-                  {event.featured && (
-                    <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider flex items-center gap-1">
-                      <span className="material-symbols-outlined text-[12px]">star</span>
-                      Destacado
+          {currentEvents.map((event) => {
+            const isComplete = Boolean(event.location?.trim() && event.date?.trim());
+            const metaInfo = [
+              event.location?.trim(),
+              (event.time || event.date)?.trim()
+            ].filter(Boolean);
+
+            const fallbackText = isComplete ? 'Finalizado' : 'Por Realizar';
+
+            return (
+              <div
+                key={event.id || event.title}
+                className={`flex flex-col justify-between p-5 bg-white/80 backdrop-blur-xl rounded-xl border border-black/10 hover:border-black/30 transition-all ${
+                  event.featured ? 'border-l-4 border-l-black' : ''
+                }`}
+              >
+                <div>
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <span className="font-['JetBrains_Mono'] text-xs text-[#45464d] font-semibold uppercase tracking-wider bg-[#f6f3f5] px-2 py-0.5 rounded">
+                      {event.date || 'PRÓXIMAMENTE'}
                     </span>
-                  )}
+                    {event.featured && (
+                      <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[12px]">star</span>
+                        Destacado
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="font-['Inter'] text-lg font-bold text-black mb-2 truncate">
+                    {event.title}
+                  </h3>
+
+                  <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] flex items-center gap-1 mb-4 truncate">
+                    <span className="material-symbols-outlined text-sm shrink-0">schedule</span>
+                    <span className="truncate">
+                      {metaInfo.length > 0 ? metaInfo.join(' \\ ') : 'Sin detalles de ubicación/hora'}
+                    </span>
+                  </p>
                 </div>
 
-                <h3 className="font-['Inter'] text-lg font-bold text-black mb-2">
-                  {event.title}
-                </h3>
-
-                <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] flex items-center gap-1 mb-4">
-                  <span className="material-symbols-outlined text-sm">schedule</span>
-                  {event.location || 'Por confirmar'} \ {event.time || ''}
-                </p>
+                {/* Botón de Acción Homologado */}
+                <div className="pt-3 border-t border-black/5 flex justify-end">
+                  {event.rsvpUrl ? (
+                    <a
+                      href={event.rsvpUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
+                    >
+                      {event.buttonText || fallbackText}
+                    </a>
+                  ) : (
+                    <button
+                      disabled
+                      className="inline-block text-black/40 font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black/20 px-4 py-2 rounded cursor-not-allowed opacity-50"
+                    >
+                      {event.buttonText || fallbackText}
+                    </button>
+                  )}
+                </div>
               </div>
-
-              {/* Botón de Acción Homologado */}
-              <div className="pt-3 border-t border-black/5 flex justify-end">
-                {event.rsvpUrl ? (
-                  <a
-                    href={event.rsvpUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
-                  >
-                    {event.buttonText || 'Confirmar Asistencia'}
-                  </a>
-                ) : (
-                  <></>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="bg-white/50 border border-black/10 rounded-xl p-12 text-center">

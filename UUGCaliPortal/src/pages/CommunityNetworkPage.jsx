@@ -10,12 +10,6 @@ const organicShapes = [
     "rounded-[50%_50%_20%_80%_/_25%_80%_20%_75%]"
 ];
 
-// Mapa para validar mes por texto de 3 letras (en español)
-const MONTH_MAP = {
-    ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
-    JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11
-};
-
 const membersData = membersDataRaw.map((member) => ({
     ...member,
     avatar: member.avatar.startsWith('http')
@@ -67,15 +61,12 @@ export default function CommunityNetworkPage() {
 
     // Filtrar eventos únicamente pertenecientes al mes en curso
     const filteredEvents = useMemo(() => {
-        const currentMonthIndex = new Date().getMonth();
+        return (eventsData || []).filter((event) => {
+            if (event?.featured === undefined || event?.featured === null) return false;
 
-        return eventsData.filter((event) => {
-            if (!event.date) return false;
-            const [, monthStr] = event.date.trim().split(' ');
-            if (!monthStr) return false;
-
-            const eventMonthIndex = MONTH_MAP[monthStr.toUpperCase()];
-            return eventMonthIndex === currentMonthIndex;
+            // Maneja booleanos (true) y strings ('true', '1', etc.) ignorando 'false'
+            const featuredStr = String(event.featured).trim().toLowerCase();
+            return featuredStr !== 'false' && featuredStr !== '0' && featuredStr !== '';
         });
     }, [eventsData]);
 
@@ -169,11 +160,11 @@ export default function CommunityNetworkPage() {
                     </div>
                 </section>
 
-                {/* Widget de Eventos del Mes */}
+                {/* Widget de Eventos */}
                 <section className="md:col-span-4 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6 flex flex-col h-full">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black">
-                            Eventos del Mes
+                            Eventos Destacados
                         </h2>
                         <div className="flex gap-2">
                             <button
@@ -205,11 +196,12 @@ export default function CommunityNetworkPage() {
                         ) : currentEvents.length > 0 ? (
                             currentEvents.map((event, idx) => {
                                 const [day, month] = event.date ? event.date.split(' ') : ['00', 'EVENTO'];
+                                const isFeatured = event?.featured && String(event.featured).toLowerCase() !== 'false';
 
                                 return (
                                     <div
                                         key={`${event.id}-${startIndex + idx}`}
-                                        className="group flex items-center gap-3 p-2.5 rounded hover:bg-[#f6f3f5] transition-colors border-l-2 border-transparent hover:border-black cursor-pointer h-[70px] overflow-hidden"
+                                        className="group relative flex items-center gap-3 p-2.5 rounded hover:bg-[#f6f3f5] transition-colors border-l-2 border-transparent hover:border-black cursor-pointer h-[70px] overflow-hidden"
                                     >
                                         {/* Indicador de Fecha */}
                                         <div className="flex flex-col items-center justify-center min-w-[3rem] shrink-0">
@@ -221,11 +213,13 @@ export default function CommunityNetworkPage() {
                                             </span>
                                         </div>
 
-                                        {/* Detalles del Evento (Truncados a 1 línea cada uno) */}
-                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                            <h4 className="font-['Inter'] text-sm font-medium text-black group-hover:underline truncate leading-snug">
-                                                {event.title}
-                                            </h4>
+                                        {/* Detalles del Evento */}
+                                        <div className="flex-1 min-w-0 flex flex-col justify-center pr-2">
+                                            <div className="flex items-center gap-2">
+                                                <h4 className="font-['Inter'] text-sm font-medium text-black group-hover:underline truncate leading-snug">
+                                                    {event.title}
+                                                </h4>
+                                            </div>
                                             <p className="font-['JetBrains_Mono'] text-[11px] text-[#45464d] flex items-center gap-1 mt-0.5 truncate">
                                                 <span className="material-symbols-outlined text-[13px] shrink-0">
                                                     schedule
@@ -235,6 +229,18 @@ export default function CommunityNetworkPage() {
                                                 </span>
                                             </p>
                                         </div>
+
+                                        {/* Badge de Destacado con Estrella */}
+                                        {isFeatured && (
+                                            <span className="shrink-0 text-black font-['JetBrains_Mono'] text-[9px] uppercase px-1.5 py-0.5 rounded tracking-wider flex items-center gap-0.5">
+                                                <span
+                                                    className="material-symbols-outlined text-[10px]"
+                                                    style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+                                                >
+                                                    star
+                                                </span>
+                                            </span>
+                                        )}
                                     </div>
                                 );
                             })

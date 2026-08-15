@@ -2,6 +2,7 @@ import React from 'react';
 import projectsData from '../data/projects.json';
 import { useEvents } from '../hooks/useEvents';
 import { useAuth } from '../context/AuthContext';
+import { useMemo } from 'react';
 
 // Mapeo de meses en español (tal como están en tu JSON)
 const MONTHS_ES = [
@@ -10,22 +11,36 @@ const MONTHS_ES = [
 ];
 
 // Función helper para formatear la fecha de hoy al formato "DD MMM" (ej: "15 NOV")
-const getTodayFormatted = () => {
+/*const getTodayFormatted = () => {
   const today = new Date();
   const day = String(today.getDate()).padStart(2, '0');
   const month = MONTHS_ES[today.getMonth()];
   return `${day} ${month}`;
+};*/
+const MONTH_MAP = {
+    ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
+    JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11
 };
 
 export default function MainPage({ setActiveTab }) {
   const { isLoggedIn } = useAuth();
   const { eventsData, loading } = useEvents();
 
-  // 1. Obtener la fecha de hoy
-  const todayStr = getTodayFormatted();
+  //const todayStr = getTodayFormatted();
 
   // 2. Filtrar solo los eventos programados para HOY y limitar a máximo 2
-  const todayEvents = (eventsData || []).filter((event) => (event.featured && event.featured.toString() != 'false') || event.date?.toUpperCase() === todayStr)
+  const todayEvents = useMemo(() => {
+    const currentMonthIndex = new Date().getMonth();
+
+    return [...eventsData].reverse().filter((event) => {
+      if (!event.date) return false;
+      const [, monthStr] = event.date.trim().split(' ');
+      if (!monthStr) return false;
+
+      const eventMonthIndex = MONTH_MAP[monthStr.toUpperCase()];
+      return eventMonthIndex === currentMonthIndex;
+    });
+  }, [eventsData]);
 
   const topShowcase = projectsData.find((p) => p.isTopShowcase) || projectsData[0];
 
@@ -99,38 +114,56 @@ export default function MainPage({ setActiveTab }) {
                   Cargando eventos...
                 </p>
               ) : todayEvents.length > 0 ? (
-                todayEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded border border-black/5 hover:border-black/20 transition-colors"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-['Inter'] text-lg text-black font-bold">
-                          {event.title}
-                        </h3>
-                        {event.featured && (
-                          <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider">
-                            Destacado
-                          </span>
+                todayEvents.map((event) => {
+                  const isComplete = Boolean(event.location?.trim() && event.date?.trim());
+                  const metaInfo = [
+                    event.location?.trim(),
+                    (event.time || event.date)?.trim()
+                  ].filter(Boolean);
+
+                  return (
+                    <div
+                      key={event.id}
+                      className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded border border-black/5 hover:border-black/20 transition-colors gap-4"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-['Inter'] text-lg text-black font-bold truncate">
+                            {event.title}
+                          </h3>
+                          {event.featured && (
+                            <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider shrink-0">
+                              Destacado
+                            </span>
+                          )}
+                        </div>
+                        <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1 truncate">
+                          {metaInfo.length > 0 ? metaInfo.join(' \\ ') : 'Sin detalles de ubicación/hora'}
+                        </p>
+                      </div>
+
+                      <div className="shrink-0 w-full sm:w-auto">
+                        {event.rsvpUrl ? (
+                          <a
+                            href={event.rsvpUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full sm:w-auto text-center inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
+                          >
+                            {event.buttonText || (isComplete ? 'Finalizado' : 'Por Realizar')}
+                          </a>
+                        ) : (
+                          <button
+                            disabled
+                            className="w-full sm:w-auto inline-block text-black/40 font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black/20 px-4 py-2 rounded cursor-not-allowed opacity-50"
+                          >
+                            {event.buttonText || (isComplete ? 'Finalizado' : 'Por Realizar')}
+                          </button>
                         )}
                       </div>
-                      <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
-                        {event.location} \ {event.time || event.date}
-                      </p>
                     </div>
-                    {event.rsvpUrl && (
-                      <a
-                        href={event.rsvpUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-4 sm:mt-0 inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
-                      >
-                        {event.buttonText || ''}
-                      </a>
-                    )}
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <p className="font-['JetBrains_Mono'] text-xs text-[#45464d]">
                   No hay eventos programados para el día de hoy.

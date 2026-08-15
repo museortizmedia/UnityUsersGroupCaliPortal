@@ -53,8 +53,8 @@
     "id": "2026-3",
     "title": "Showcase Day 2026",
     "date": "31 AGO",
-    "time": "-",
-    "location": "-",
+    "time": "",
+    "location": "",
     "description": "¡Día donde los miembros muestran sus demos y proyetos jugables! Pizza y mucha diversión.",
     "featured": true
   },
@@ -62,16 +62,16 @@
     "id": "2026-4",
     "title": "Pitch Day 2026",
     "date": "04 SEP",
-    "time": "-",
-    "location": "-",
+    "time": "",
+    "location": "",
     "description": "Mostremos el resultado final del Cali Challenge 2026"
   },
   {
     "id": "2026-5",
     "title": "Year Open Showcase 2026",
     "date": "05 NOV",
-    "time": "-",
-    "location": "-",
+    "time": "",
+    "location": "",
     "description": "Showcase abierto al público para hbalar de los proyectos y el impacto en la ciudad de Cali"
   }
 ]
