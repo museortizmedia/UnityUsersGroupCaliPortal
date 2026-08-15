@@ -3,14 +3,14 @@
     "id": 1,
     "name": "Diego Ortiz",
     "role": "Community Lead",
-    "avatar": "/public/DiegoOrtiz-Avatar.jpg",
+    "avatar": "/DiegoOrtiz-Avatar.jpg",
     "bio": "Ingeniero multimedia con experiencia en desarrollo de videojuegos y aplicaciones interactivas."
   },
   {
     "id": 2,
     "name": "Andrés Fernandez",
     "role": "Moderador de la Comunidad",
-    "avatar": "/public/AndresFernandez-Avatar.jpg",
+    "avatar": "/AndresFernandez-Avatar.jpg",
     "bio": "Moderador de la comunidad de Discord"
   }
 ]
