@@ -16,6 +16,7 @@ import ArchitecturePage from './pages/ArchitecturePage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 
+import EventsPage from './pages/EventsPage';
 import EventUploadPage from './pages/EventUploadPage';
 
 import ProjectsPage from './pages/ProjectsPage';
@@ -42,6 +43,7 @@ const ROUTE_MAP = {
   '/privacy': 'privacy',
   '/terms': 'terms',
 
+  '/events': 'events',
   '/event-update': 'event-update',
 
   '/projects': 'projects',
@@ -73,6 +75,7 @@ const PAGE_HEADER_CONFIG = {
   privacy: { showLogo: true, showSearch: false, category: 'Forum' },
   terms: { showLogo: true, showSearch: false, category: 'Forum' },
 
+  events: { showLogo: true, showSearch: true, category: 'Projects' },
   'event-update': { showLogo: true, showSearch: false, category: 'Projects' },
 
   projects: { showLogo: true, showSearch: true, category: 'Projects' },
@@ -225,6 +228,13 @@ function AppContent() {
       case 'event-update':
         return <EventUploadPage
             setActiveTab={setActiveTab} 
+            selectedPackage={selectedPackage}
+            setSelectedPackage={setSelectedPackage}
+          />
+      
+      case 'events':
+        return <EventsPage
+          setActiveTab={setActiveTab} 
             selectedPackage={selectedPackage}
             setSelectedPackage={setSelectedPackage}
           />

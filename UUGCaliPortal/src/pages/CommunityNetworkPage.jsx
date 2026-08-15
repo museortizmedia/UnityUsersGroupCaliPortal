@@ -91,7 +91,7 @@ export default function CommunityNetworkPage() {
     };
 
     const startIndex = page * EVENTS_PER_PAGE;
-    const currentEvents = filteredEvents.slice(startIndex, startIndex + EVENTS_PER_PAGE);
+    const currentEvents = [...filteredEvents].reverse().slice(startIndex, startIndex + EVENTS_PER_PAGE);
 
     const handleCopyEndpoint = () => {
         const baseUrl = import.meta.env.BASE_URL.endsWith('/')
@@ -188,7 +188,7 @@ export default function CommunityNetworkPage() {
                             <button
                                 onClick={handleNext}
                                 disabled={page >= totalPages - 1 || loading}
-                                className="w-8 h-8 rounded border border-[#c6c6cd] flex items-center justify-center text-[#45464d] hover:border-black hover:text-black transition-colors disabled:opacity-[#c6c6cd] disabled:hover:text-[#45464d] cursor-pointer disabled:cursor-not-allowed"
+                                className="w-8 h-8 rounded border border-[#c6c6cd] flex items-center justify-center text-[#45464d] hover:border-black hover:text-black transition-colors disabled:opacity-30 disabled:hover:border-[#c6c6cd] disabled:hover:text-[#45464d] cursor-pointer disabled:cursor-not-allowed"
                             >
                                 <span className="material-symbols-outlined text-sm">
                                     chevron_right
@@ -209,25 +209,30 @@ export default function CommunityNetworkPage() {
                                 return (
                                     <div
                                         key={`${event.id}-${startIndex + idx}`}
-                                        className="group flex gap-4 p-3 rounded hover:bg-[#f6f3f5] transition-colors border-l-2 border-transparent hover:border-black cursor-pointer h-[70px] items-center"
+                                        className="group flex items-center gap-3 p-2.5 rounded hover:bg-[#f6f3f5] transition-colors border-l-2 border-transparent hover:border-black cursor-pointer h-[70px] overflow-hidden"
                                     >
-                                        <div className="flex flex-col items-center justify-center min-w-[3rem]">
-                                            <span className="font-['JetBrains_Mono'] text-xs text-[#45464d] font-medium uppercase tracking-wider">
+                                        {/* Indicador de Fecha */}
+                                        <div className="flex flex-col items-center justify-center min-w-[3rem] shrink-0">
+                                            <span className="font-['JetBrains_Mono'] text-[10px] text-[#45464d] font-medium uppercase tracking-wider leading-none mb-0.5">
                                                 {month || 'EVENTO'}
                                             </span>
-                                            <span className="font-['Space_Grotesk'] text-2xl font-semibold text-black leading-none">
+                                            <span className="font-['Space_Grotesk'] text-xl font-semibold text-black leading-none">
                                                 {day || '00'}
                                             </span>
                                         </div>
-                                        <div>
-                                            <h4 className="font-['Inter'] text-base font-medium text-black group-hover:underline line-clamp-1">
+
+                                        {/* Detalles del Evento (Truncados a 1 línea cada uno) */}
+                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                            <h4 className="font-['Inter'] text-sm font-medium text-black group-hover:underline truncate leading-snug">
                                                 {event.title}
                                             </h4>
-                                            <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] flex items-center gap-1 mt-1">
-                                                <span className="material-symbols-outlined text-[14px]">
+                                            <p className="font-['JetBrains_Mono'] text-[11px] text-[#45464d] flex items-center gap-1 mt-0.5 truncate">
+                                                <span className="material-symbols-outlined text-[13px] shrink-0">
                                                     schedule
-                                                </span>{' '}
-                                                {event.location} • {event.time}
+                                                </span>
+                                                <span className="truncate">
+                                                    {event.location} • {event.time}
+                                                </span>
                                             </p>
                                         </div>
                                     </div>
@@ -247,7 +252,7 @@ export default function CommunityNetworkPage() {
                         <div>
                             <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black flex items-center gap-2">
                                 <span className="material-symbols-outlined text-orange-500">rss_feed</span>
-                                RSS Eventos 
+                                RSS Eventos
                             </h2>
                             <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
                                 Suscripción RSS accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">feed.xml</code>.

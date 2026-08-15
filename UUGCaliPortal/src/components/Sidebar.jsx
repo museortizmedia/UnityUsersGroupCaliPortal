@@ -7,11 +7,12 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
   // Opciones de menú según el estado de sesión
   const menuItems = [
     { id: 'main', label: 'Main', icon: 'grid_view' },
+    { id: 'events', label: 'Events', icon: 'calendar_clock'},
     { id: 'projects', label: 'Projects', icon: 'videogame_asset' },
     { id: 'packages', label: 'Packages', icon: 'deployed_code' },
     { id: 'library', label: 'My Library', icon: 'package' },
     { id: 'community', label: 'Community', icon: 'groups' },
-    //...(isLoggedIn ? [{ id: 'event-update', label: 'Events', icon: 'calendar_clock', level: 2 }] : []),
+    //...(isLoggedIn ? [{ id: 'event-update', label: 'New Event', icon: 'calendar_clock', level: 2 }] : []),
   ];
 
   return (
@@ -93,6 +94,14 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
           {isLoggedIn && (
             <div className="px-6 mb-4 space-y-2">
               { isLoggedIn && <>
+              <button
+                  onClick={() => setActiveTab('event-update')}
+                  className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">add</span>
+                  New Event
+                </button> 
+                
                 <button
                   onClick={() => setActiveTab('update-project')}
                   className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
@@ -108,14 +117,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
                   <span className="material-symbols-outlined text-sm">add</span>
                   New Package
                 </button>
-
-                <button
-                  onClick={() => setActiveTab('event-update')}
-                  className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-sm">add</span>
-                  New Event
-                </button> 
+ 
               </>}
 
               <button

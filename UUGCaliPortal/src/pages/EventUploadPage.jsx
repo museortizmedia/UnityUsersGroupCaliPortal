@@ -437,7 +437,7 @@ export default function EventUploadPage() {
           <div className="col-span-12 lg:col-span-6 flex flex-col gap-6">
             <div className="flex items-center justify-between bg-white/40 backdrop-blur-md border border-black/10 rounded-xl p-3">
               <span className="font-['JetBrains_Mono'] text-xs font-bold text-black uppercase tracking-wider pl-2">
-                Eventos Programados ({fullJsonData.length})
+                Eventos ({fullJsonData.length})
               </span>
               <button
                 type="button"

@@ -25,9 +25,7 @@ export default function MainPage({ setActiveTab }) {
   const todayStr = getTodayFormatted();
 
   // 2. Filtrar solo los eventos programados para HOY y limitar a máximo 2
-  const todayEvents = (eventsData || [])
-    .filter((event) => event.date.toUpperCase() === todayStr)
-    .slice(0, 2);
+  const todayEvents = (eventsData || []).filter((event) => (event.featured && event.featured.toString() != 'false') || event.date?.toUpperCase() === todayStr)
 
   const topShowcase = projectsData.find((p) => p.isTopShowcase) || projectsData[0];
 
@@ -107,21 +105,30 @@ export default function MainPage({ setActiveTab }) {
                     className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded border border-black/5 hover:border-black/20 transition-colors"
                   >
                     <div>
-                      <h3 className="font-['Inter'] text-lg text-black font-bold">
-                        {event.title}
-                      </h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-['Inter'] text-lg text-black font-bold">
+                          {event.title}
+                        </h3>
+                        {event.featured && (
+                          <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider">
+                            Destacado
+                          </span>
+                        )}
+                      </div>
                       <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
                         {event.location} \ {event.time || event.date}
                       </p>
                     </div>
-                    <a
-                      href={event.rsvpUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 sm:mt-0 inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
-                    >
-                      {event.buttonText || 'Confirmar Asistencia'}
-                    </a>
+                    {event.rsvpUrl && (
+                      <a
+                        href={event.rsvpUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 sm:mt-0 inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
+                      >
+                        {event.buttonText || ''}
+                      </a>
+                    )}
                   </div>
                 ))
               ) : (
@@ -135,18 +142,18 @@ export default function MainPage({ setActiveTab }) {
           {/* Botón Ver Todo posicionado abajo a la derecha */}
           <div className="flex justify-end mt-4 gap-4">
             {isLoggedIn && (<button
-                onClick={() => setActiveTab && setActiveTab('event-update')}
-                className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono']  text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black  cursor-pointer flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-[16px]">add</span> Nuevo Evento
-              </button>
+              onClick={() => setActiveTab && setActiveTab('event-update')}
+              className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono']  text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black  cursor-pointer flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[16px]">add</span> Nuevo Evento
+            </button>
             )}
             <button
-                onClick={() => setActiveTab && setActiveTab('community')}
-                className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono']  text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black  cursor-pointer flex items-center gap-2"
-              >
-                Ver todo <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </button>
+              onClick={() => setActiveTab && setActiveTab('events')}
+              className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono']  text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black  cursor-pointer flex items-center gap-2"
+            >
+              Ver todo <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </button>
           </div>
         </div>
 

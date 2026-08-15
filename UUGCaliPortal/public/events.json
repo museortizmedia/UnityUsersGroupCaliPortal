@@ -1,13 +1,77 @@
 [
   {
-    "id": "1",
-    "title": "Evento prueba",
-    "date": "15 AGO",
-    "time": "6:30 PM - 7:30 PM",
-    "location": "Sitio de Prueba",
-    "description": "Este es un evento de prueba para comprobar",
-    "rsvpUrl": "https://www.google.com",
-    "buttonText": "Confirmar Asistencia",
+    "id": "2025-1",
+    "title": "Kickoff del Año 2025",
+    "date": "04 MAY",
+    "time": "2:00 PM",
+    "location": "Universidad Autónoma de Occidente – MediaLab Sótanos 2, Cali",
+    "description": "Inaguración del Grupo de Usuarios de la Ciudad de Cali. Conozcamos lo nuevo de Unity 6 de la mano de Robert Ardilla"
+  },
+  {
+    "id": "2025-2",
+    "title": "Level Up 2025",
+    "date": "06 AGO",
+    "time": "9:00 AM - 12:00 PM",
+    "location": "CDTI SENA | Aulas de Contenidos Digitales. Cl. 72f #26i-2, Ricardo Balcázar, Cali, Valle del Cauca",
+    "description": "Acercamiento a la industria, Show & Tell y aprendamos de Multiplayer con Esteban Maldonado"
+  },
+  {
+    "id": "2025-3",
+    "title": "Unity Birthday! Community Mixer 2025",
+    "date": "04 NOV",
+    "time": "5:00 PM",
+    "location": "Universidad Autónoma de Occidente – Salón De Actividades, Cali",
+    "description": "¡Compartamos un pastel y hablemos de Unity!"
+  },
+  {
+    "id": "2026-1",
+    "title": "Kickoff del Año 2026",
+    "date": "05 MAR",
+    "time": "1:00 PM",
+    "location": "Universidad Autónoma de Occidente – MediaLab Sótanos 2, Cali",
+    "description": "¿Cuál es el estado actual de la industria y cuál es el estado actual del UUG? Inaguración de la estrategia anual Cali Unity Challenge 2026."
+  },
+  {
+    "id": "2026-1-1",
+    "title": "Grabación Kickoff del Año 2026",
+    "date": "05 MAR",
+    "time": "Video",
+    "location": "Virtual",
+    "description": "Repetición grabada del Kickoff del Año 2026",
+    "rsvpUrl": "https://youtu.be/3pTFdByizcY ",
+    "buttonText": "Ver"
+  },
+  {
+    "id": "2026-2",
+    "title": "Vertical Slice 2026",
+    "date": "07 MAY",
+    "time": "7:00 PM - 9:00 PM",
+    "location": "Universidad Autónoma de Occidente, Salón A4T1",
+    "description": "Aterrizaje proyectos Cali Cahllenge 2026, Arquitectura Limpia, Scriptable Objects y Performance con Esteban Maldonado"
+  },
+  {
+    "id": "2026-3",
+    "title": "Showcase Day 2026",
+    "date": "31 AGO",
+    "time": "-",
+    "location": "-",
+    "description": "¡Día donde los miembros muestran sus demos y proyetos jugables! Pizza y mucha diversión.",
     "featured": true
+  },
+  {
+    "id": "2026-4",
+    "title": "Pitch Day 2026",
+    "date": "04 SEP",
+    "time": "-",
+    "location": "-",
+    "description": "Mostremos el resultado final del Cali Challenge 2026"
+  },
+  {
+    "id": "2026-5",
+    "title": "Year Open Showcase 2026",
+    "date": "05 NOV",
+    "time": "-",
+    "location": "-",
+    "description": "Showcase abierto al público para hbalar de los proyectos y el impacto en la ciudad de Cali"
   }
 ]
