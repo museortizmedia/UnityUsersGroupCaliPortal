@@ -1,48 +1,5 @@
 [
   {
-    "id": "proj-neon-drift",
-    "title": "Project Neon Drift",
-    "author": "Muse Ortiz Media",
-    "category": "Cyberpunk Racing",
-    "description": "Juego de carreras arcade estilo cyberpunk desarrollado en Unity.",
-    "status": "Prototipo",
-    "version": "v0.8.2",
-    "tags": [
-      "cyberpunk",
-      "racing",
-      "unity3d"
-    ],
-    "technologies": [
-      "Unity",
-      "C#",
-      "Shader Graph"
-    ],
-    "coverImage": "https://lh3.googleusercontent.com/aida-public/AB6AXuBRIIXUlfSP3E3jV95740no8x8dXReCuTBziztQbbiVa-Z29T26qtYoW_6ULom4clP0ZmaYjXXNy4jafMCViPoOZf6WDI0-7fPgaOHtUwuled7zzddLqerJ86X6qwfPkHMo6Rxcv8UyzHWzb8AY11hi49mKylOEF-dwAW19qHhLOyeQsryeWit8hws2zAvvSyxmelFDsAMiJBUNxjCqdOGgIVeW2-uoS_Wc3DCCl7i2o7SXItMW2yNfzdJk08mcxintqSl0V2HhLA",
-    "badge": "PROJECT OF THE WEEK",
-    "downloadUrl": "https://drive.google.com/file/d/1HX5bKEju8W-MO468hMkEUGwJgOTwPyb2/view?usp=drive_link"
-  },
-  {
-    "id": "proj-nave-lumina",
-    "title": "Nave Lúmina Space Odyssey",
-    "author": "CaliUUG Team",
-    "category": "Sci-Fi / Interactive",
-    "description": "Experiencia interactiva 3D low-poly de exploración espacial.",
-    "status": "Publicado",
-    "version": "v1.0.0",
-    "tags": [
-      "scifi",
-      "interactive",
-      "space"
-    ],
-    "technologies": [
-      "Unity",
-      "C#",
-      "Blender"
-    ],
-    "coverImage": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop",
-    "badge": "COMMUNITY FAV"
-  },
-  {
     "id": "proj-1786774383112",
     "title": "Aurora Sky",
     "author": "Diego Ortiz",
