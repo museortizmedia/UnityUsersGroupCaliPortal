@@ -209,19 +209,19 @@ export default function ViewProjectPage({
               <div className="font-['JetBrains_Mono'] text-xs space-y-3 text-[#45464d]">
                 <div className="flex justify-between items-center">
                   <span>Autor:</span>
-                  <strong className="text-black font-semibold">{project.author ?? 'Desconocido'}</strong>
+                  <strong className="text-black font-semibold">{project.author ?? 'Anónimo'}</strong>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Versión:</span>
-                  <strong className="text-black font-semibold">{project.version ?? 'v1.0.0'}</strong>
+                  <strong className="text-black font-semibold">{project.version ?? '-'}</strong>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Estado:</span>
-                  <strong className="text-black font-semibold uppercase">{project.status ?? 'N/A'}</strong>
+                  <strong className="text-black font-semibold uppercase">{project.status ?? '-'}</strong>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>Licencia:</span>
-                  <strong className="text-black font-semibold">{project.license ?? 'MIT'}</strong>
+                  <strong className="text-black font-semibold">{project.license ?? '-'}</strong>
                 </div>
               </div>
             </div>
