@@ -247,7 +247,7 @@ export default function CommunityNetworkPage() {
                         <div>
                             <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black flex items-center gap-2">
                                 <span className="material-symbols-outlined text-orange-500">rss_feed</span>
-                                Feed RSS de Eventos (Mes Actual)
+                                RSS Eventos 
                             </h2>
                             <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
                                 Suscripción RSS accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">feed.xml</code>.
