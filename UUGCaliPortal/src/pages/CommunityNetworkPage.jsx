@@ -14,7 +14,7 @@ const membersData = membersDataRaw.map((member) => ({
     ...member,
     avatar: member.avatar.startsWith('http')
         ? member.avatar
-        : `${import.meta.env.BASE_URL}${member.avatar.replace(/^\//, '')}`,
+        : `${import.meta.env.BASE_URL}${member.avatar.startsWith('/') ? member.avatar.slice(1) : member.avatar}`,
 }));
 
 export default function CommunityNetworkPage() {
@@ -44,7 +44,6 @@ export default function CommunityNetworkPage() {
                     const xmlText = await response.text();
                     setFetchedXml(xmlText);
 
-                    // Si la URL apunta explícitamente a feed.xml, reemplaza el documento
                     if (isFeedPath) {
                         document.open();
                         document.write(xmlText);
@@ -64,7 +63,6 @@ export default function CommunityNetworkPage() {
         return (eventsData || []).filter((event) => {
             if (event?.featured === undefined || event?.featured === null) return false;
 
-            // Maneja booleanos (true) y strings ('true', '1', etc.) ignorando 'false'
             const featuredStr = String(event.featured).trim().toLowerCase();
             return featuredStr !== 'false' && featuredStr !== '0' && featuredStr !== '';
         });
@@ -97,8 +95,6 @@ export default function CommunityNetworkPage() {
     };
 
     const featuredMembers = membersData.slice(0, 4);
-
-    // Contenido a mostrar en el bloque de código RSS
     const rssPreviewText = fetchedXml || '-';
 
     return (
@@ -203,7 +199,6 @@ export default function CommunityNetworkPage() {
                                         key={`${event.id}-${startIndex + idx}`}
                                         className="group relative flex items-center gap-3 p-2.5 rounded hover:bg-[#f6f3f5] transition-colors border-l-2 border-transparent hover:border-black cursor-pointer h-[70px] overflow-hidden"
                                     >
-                                        {/* Indicador de Fecha */}
                                         <div className="flex flex-col items-center justify-center min-w-[3rem] shrink-0">
                                             <span className="font-['JetBrains_Mono'] text-[10px] text-[#45464d] font-medium uppercase tracking-wider leading-none mb-0.5">
                                                 {month || 'EVENTO'}
@@ -213,7 +208,6 @@ export default function CommunityNetworkPage() {
                                             </span>
                                         </div>
 
-                                        {/* Detalles del Evento */}
                                         <div className="flex-1 min-w-0 flex flex-col justify-center pr-2">
                                             <div className="flex items-center gap-2">
                                                 <h4 className="font-['Inter'] text-sm font-medium text-black group-hover:underline truncate leading-snug">
@@ -230,7 +224,6 @@ export default function CommunityNetworkPage() {
                                             </p>
                                         </div>
 
-                                        {/* Badge de Destacado con Estrella */}
                                         {isFeatured && (
                                             <span className="shrink-0 text-black font-['JetBrains_Mono'] text-[9px] uppercase px-1.5 py-0.5 rounded tracking-wider flex items-center gap-0.5">
                                                 <span
@@ -252,42 +245,72 @@ export default function CommunityNetworkPage() {
                     </div>
                 </section>
 
-                {/* Previsualización del RSS Feed Endpoint */}
-                <section className="md:col-span-12 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-black/10 pb-4">
-                        <div>
-                            <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black flex items-center gap-2">
-                                <span className="material-symbols-outlined text-orange-500">rss_feed</span>
-                                RSS Eventos
-                            </h2>
-                            <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
-                                Suscripción RSS accesible directamente en <code className="bg-[#f6f3f5] px-1 rounded text-black">feed.xml</code>.
-                            </p>
-                        </div>
-                        <button
-                            onClick={handleCopyEndpoint}
-                            className="px-4 py-2 border border-[#c6c6cd] rounded font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-black hover:bg-[#f6f3f5] transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                            <span className="material-symbols-outlined text-sm">
-                                {copied ? 'check' : 'content_copy'}
-                            </span>
-                            {copied ? '¡URL Copiada!' : 'Copiar URL'}
-                        </button>
-                    </div>
+                {/* Sección del Mapa de Ubicación: Cali, Colombia (1/3 de ancho) */}
+<section className="md:col-span-4 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6 flex flex-col justify-between">
+    <div>
+        <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black mb-1">
+            Ubicación
+        </h2>
+        <p className="font-['JetBrains_Mono'] text-xs text-[#45464d]">
+            Cali, Colombia
+        </p>
+    </div>
 
-                    <div className="bg-[#1e1e1e] border border-black/20 rounded-lg p-4 font-['JetBrains_Mono'] text-xs flex flex-col">
-                        <div className="text-gray-400 mb-2 border-b border-gray-700 pb-2 flex justify-between items-center text-[10px]">
-                            <span>GET /feed.xml</span>
-                            <span className="text-emerald-400">200 OK (application/xml)</span>
+    <div className="relative w-full h-48 bg-[#f8f9fa] border border-black/5 rounded-lg my-4 overflow-hidden flex items-center justify-center">
+        {/* Imagen del mapa en alta definición */}
+        <img 
+            src={`${import.meta.env.BASE_URL}/world_map.webp`} 
+            alt="Mapa de América" 
+            className="w-full h-full object-contain p-2 opacity-80"
+        />
+
+        {/* Indicador animado sobre Cali */}
+        {/* Ajusta los porcentajes de top/left según el encuadre exacto de tu imagen */}
+        <div className="absolute top-[47%] left-[30%] flex items-center justify-center">
+            <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-white shadow-sm"></span>
+        </div>
+    </div>
+</section>
+
+                {/* Previsualización del RSS Feed Endpoint (2/3 de ancho restantes) */}
+                <section className="md:col-span-8 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6 flex flex-col justify-between">
+                    <div>
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4 border-b border-black/10 pb-4">
+                            <div>
+                                <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-orange-500">rss_feed</span>
+                                    RSS Eventos
+                                </h2>
+                                <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
+                                    Suscripción accesible en <code className="bg-[#f6f3f5] px-1 rounded text-black">feed.xml</code>
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleCopyEndpoint}
+                                className="px-3 py-1.5 border border-[#c6c6cd] rounded font-['JetBrains_Mono'] text-xs font-medium uppercase tracking-wider text-black hover:bg-[#f6f3f5] transition-colors flex items-center gap-2 cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-sm">
+                                    {copied ? 'check' : 'content_copy'}
+                                </span>
+                                {copied ? '¡Copiado!' : 'Copiar URL'}
+                            </button>
                         </div>
-                        <pre className="m-0 leading-relaxed text-[#d4d4d4] max-h-[300px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700">
-                            <code>{rssPreviewText}</code>
-                        </pre>
+
+                        <div className="bg-[#1e1e1e] border border-black/20 rounded-lg p-4 font-['JetBrains_Mono'] text-xs flex flex-col">
+                            <div className="text-gray-400 mb-2 border-b border-gray-700 pb-2 flex justify-between items-center text-[10px]">
+                                <span>GET /feed.xml</span>
+                                <span className="text-emerald-400">200 OK</span>
+                            </div>
+                            <pre className="m-0 leading-relaxed text-[#d4d4d4] max-h-[120px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700">
+                                <code>{rssPreviewText}</code>
+                            </pre>
+                        </div>
                     </div>
                 </section>
             </div>
 
-            {/* Modal emergente */}
+            {/* Modal emergente de Miembros */}
             {isMembersModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-black/10 shadow-2xl overflow-hidden">

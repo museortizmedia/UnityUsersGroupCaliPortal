@@ -246,6 +246,11 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
                       {metaInfo.length > 0 ? metaInfo.join(' \\ ') : 'Sin detalles de ubicación/hora'}
                     </span>
                   </p>
+
+                  <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] flex items-start gap-1.5 mb-4 break-words leading-relaxed">
+                    {event.description}
+                  </p>
+
                 </div>
 
                 {/* Botón de Acción Homologado */}

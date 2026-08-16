@@ -64,29 +64,29 @@ const TAB_TO_PATH = Object.fromEntries(
 // 2. Diccionario Centralizado de Configuración para el Header
 const PAGE_HEADER_CONFIG = {
   main: { showLogo: true, showSearch: false, category: 'Engine' },
-  login: { showLogo: true, showSearch: false, category: 'Community' },
-  profile: { showLogo: true, showSearch: false, category: 'Community' },
+  login: { showLogo: true, showSearch: false, category: 'Engine' },
+  profile: { showLogo: true, showSearch: false, category: 'Engine' },
   community: { showLogo: true, showSearch: false, category: 'Community' },
 
-  docs: { showLogo: true, showSearch: true, category: 'Engine' },
+  docs: { showLogo: true, showSearch: true, category: '' },
   support: { showLogo: true, showSearch: false, category: 'Community' },
 
-  architecture: { showLogo: true, showSearch: false, category: 'Engine' },
-  privacy: { showLogo: true, showSearch: false, category: 'Forum' },
-  terms: { showLogo: true, showSearch: false, category: 'Forum' },
+  architecture: { showLogo: true, showSearch: false, category: 'Community' },
+  privacy: { showLogo: true, showSearch: false, category: 'Engine' },
+  terms: { showLogo: true, showSearch: false, category: 'Engine' },
 
-  events: { showLogo: true, showSearch: true, category: 'Projects' },
-  'event-update': { showLogo: true, showSearch: false, category: 'Projects' },
+  events: { showLogo: true, showSearch: true, category: 'Events' },
+  'event-update': { showLogo: true, showSearch: false, category: 'Events' },
 
-  projects: { showLogo: true, showSearch: true, category: 'Projects' },
+  projects: { showLogo: true, showSearch: true, category: '' },
   'update-project': { showLogo: true, showSearch: false, category: 'Projects' },
   'project-detail': { showLogo: true, showSearch: false, category: 'Projects' },
 
-  packages: { showLogo: true, showSearch: true, category: 'Engine' },
-  'package-upload': { showLogo: true, showSearch: false, category: 'Engine' },
-  package: { showLogo: true, showSearch: true, category: 'Engine' },
+  packages: { showLogo: true, showSearch: true, category: '' },
+  'package-upload': { showLogo: true, showSearch: false, category: 'Packages' },
+  package: { showLogo: true, showSearch: false, category: 'Packages' },
 
-  library: { showLogo: true, showSearch: true, category: 'Projects' },
+  library: { showLogo: true, showSearch: true, category: '' },
 };
 
 // Helper para extraer la ruta limpia desde el hash

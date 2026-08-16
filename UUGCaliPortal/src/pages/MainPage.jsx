@@ -92,7 +92,7 @@ export default function MainPage({ setActiveTab }) {
             <div className="flex justify-between items-center mb-8 border-b border-black/10 pb-4">
               <h2 className="font-['Space_Grotesk'] text-2xl font-semibold text-black flex items-center gap-2">
                 <span className="material-symbols-outlined">event</span>
-                Eventos en Vivo
+                Eventos
               </h2>
               <span className="font-['JetBrains_Mono'] text-xs text-[#45464d] border border-black/10 px-3 py-1 rounded-full uppercase">
                 HOY
@@ -112,48 +112,78 @@ export default function MainPage({ setActiveTab }) {
                     (event.time || event.date)?.trim()
                   ].filter(Boolean);
 
-                  return (
-                    <div
-                      key={event.id}
-                      className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded border border-black/5 hover:border-black/20 transition-colors gap-4"
-                    >
-                      <div className="min-w-0 flex-1 w-full">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-['Inter'] text-lg text-black font-bold break-words">
-                            {event.title}
-                          </h3>
-                          {event.featured && (
-                            <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider shrink-0">
-                              Destacado
-                            </span>
-                          )}
-                        </div>
-                        <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-2 break-words leading-relaxed">
-                          {metaInfo.length > 0 ? metaInfo.join(' \\ ') : 'Sin detalles de ubicación/hora'}
-                        </p>
-                      </div>
+                 return (
+  <div
+    key={event.id}
+    className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3.5 sm:p-4 bg-white rounded-lg border border-black/10 hover:border-black/30 transition-all duration-200 gap-3 shadow-sm"
+  >
+    {/* Contenido Principal con límites de desbordamiento */}
+    <div className="min-w-0 flex-1 w-full space-y-1.5">
+      {/* Encabezado: Título con límite de líneas + Badge */}
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="font-['Inter'] text-base sm:text-lg text-black font-bold break-words leading-snug line-clamp-2">
+          {event.title}
+        </h3>
+        {event.featured && (
+          <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider shrink-0 select-none">
+            Destacado
+          </span>
+        )}
+      </div>
 
-                      <div className="shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
-                        {event.rsvpUrl ? (
-                          <a
-                            href={event.rsvpUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full sm:w-auto text-center inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
-                          >
-                            {event.buttonText || (isComplete ? 'Finalizado' : 'Por Realizar')}
-                          </a>
-                        ) : (
-                          <button
-                            disabled
-                            className="w-full sm:w-auto inline-block text-black/40 font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black/20 px-4 py-2 rounded cursor-not-allowed opacity-50"
-                          >
-                            {event.buttonText || (isComplete ? 'Finalizado' : 'Por Realizar')}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
+      {/* Metadatos: Hora y Ubicación */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 font-['JetBrains_Mono'] text-xs text-[#45464d]" title={event.time}>
+        {event.time && (
+          <span className="inline-flex items-center gap-1.5 shrink-0">
+            <span className="material-symbols-outlined text-sm text-black/60">schedule</span>
+            {event.time}
+          </span>
+        )}
+        {event.location && (
+          <span className="inline-flex items-center gap-1.5 shrink-0 truncate max-w-[200px] sm:max-w-[300px]" title={event.location}>
+            <span className="material-symbols-outlined text-sm text-black/60 shrink-0">location_on</span>
+            <span className="truncate">{event.location}</span>
+          </span>
+        )}
+        {!event.time && !event.location && (
+          <span className="text-black/40 italic">Sin detalles de ubicación/hora</span>
+        )}
+      </div>
+
+      {/* Descripción: Límite de 2 líneas con ellipsis */}
+      {event.description && (
+        <p className="font-['Inter'] text-xs sm:text-sm text-[#38393d] leading-relaxed break-words line-clamp-2">
+          {event.description}
+        </p>
+      )}
+    </div>
+
+    {/* Acción: Botón visualmente destacado para "Por Realizar" */}
+    <div className="shrink-0 w-full sm:w-auto pt-1 sm:pt-0">
+      {event.rsvpUrl ? (
+        <a
+          href={event.rsvpUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full sm:w-auto text-center inline-block bg-black text-white font-['JetBrains_Mono'] text-xs font-semibold uppercase tracking-wider px-4 py-2 rounded-md shadow-md hover:bg-neutral-800 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer"
+        >
+          {event.buttonText || (isComplete ? 'Finalizado' : 'Por Realizar')}
+        </a>
+      ) : (
+        <button
+          disabled={isComplete}
+          className={`w-full sm:w-auto inline-block font-['JetBrains_Mono'] text-xs font-semibold uppercase tracking-wider px-4 py-2 rounded-md transition-all duration-150 ${
+            isComplete
+              ? 'bg-neutral-100 text-neutral-400 border border-neutral-200 cursor-not-allowed'
+              : 'bg-black text-white shadow-md hover:bg-neutral-800 active:scale-95 cursor-pointer'
+          }`}
+        >
+          {event.buttonText || (isComplete ? 'Finalizado' : 'Por Realizar')}
+        </button>
+      )}
+    </div>
+  </div>
+);
                 })
               ) : (
                 <p className="font-['JetBrains_Mono'] text-xs text-[#45464d]">

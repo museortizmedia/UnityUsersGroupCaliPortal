@@ -44,7 +44,7 @@ export default function ProjectUploadPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
 
-  const statuses = ['Prototipo', 'En Desarrollo', 'Lanzado', 'Archivado'];
+  const statuses = ['Prototipo', 'Demo', 'En Desarrollo', 'Publicado', 'Archivado'];
   const licenses = ['MIT', 'Apache-2.0', 'GPL-3.0', 'CC-BY-4.0', 'Propietaria'];
 
   // 1. Cargar proyectos desde GitHub al montar

@@ -21,7 +21,7 @@ export default function PrivacyPage() {
       {/* Contenido */}
       <div className="font-['Inter'] text-[#45464d] space-y-6 leading-relaxed text-sm">
         <p>
-          En <strong>CaliUUG Developer Lab</strong>, respetamos tu privacidad y procesamos la información personal estrictamente para facilitar el networking entre desarrolladores, la transferencia de assets y el desarrollo de proyectos colaborativos.
+          En el <strong>UUG Cali (Developer Lab)</strong>, respetamos tu privacidad y procesamos la información personal estrictamente para facilitar el networking entre desarrolladores, la transferencia de assets y el desarrollo de proyectos colaborativos.
         </p>
 
         {/* Recopilación de Datos */}

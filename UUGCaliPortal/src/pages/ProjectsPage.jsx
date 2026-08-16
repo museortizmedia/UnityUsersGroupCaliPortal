@@ -143,11 +143,11 @@ export default function ProjectsPage({
             className="bg-transparent border-none text-xs font-[#JetBrains_Mono] text-black focus:ring-0 cursor-pointer hover:bg-black/5 rounded px-2 py-1 uppercase"
           >
             <option value="All">Estado: Todos</option>
-            <option value="Publicado">Publicado</option>
             <option value="Prototipo">Prototipo</option>
             <option value="Demo">Demo</option>
-            <option value="Sin publicar">Sin publicar</option>
-            <option value="Sin completar">Sin completar</option>
+            <option value="En Desarrollo">En Desarrollo</option>
+            <option value="Publicado">Publicado</option>
+            <option value="Archivado">Archivado</option>
           </select>
         </div>
       </div>

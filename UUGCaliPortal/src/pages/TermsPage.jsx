@@ -21,7 +21,7 @@ export default function TermsPage() {
       {/* Contenido de Términos */}
       <div className="font-['Inter'] text-[#45464d] space-y-6 leading-relaxed text-sm">
         <p>
-          Al acceder y utilizar el portal **CaliUUG Developer Lab**, aceptas compartir recursos, código y contenido educativo bajo los estándares de respeto, colaboración y ética de nuestra comunidad de desarrolladores.
+          Al acceder y utilizar el portal <strong>UUG Cali (Developer Lab)</strong>, aceptas compartir recursos, código y contenido educativo bajo los estándares de respeto, colaboración y ética de nuestra comunidad de desarrolladores.
         </p>
 
         {/* Sección 1 */}
@@ -59,7 +59,7 @@ export default function TermsPage() {
             </h3>
           </div>
           <p className="text-xs text-[#45464d]">
-            Los recursos y guías compartidos en este laboratorio se proporcionan "tal cual". CaliUUG y sus colaboradores no se hacen responsables de fallos en producción, pérdida de datos o incompatibilidades resultantes de la integración de código de terceros en proyectos externos.
+            Los recursos y guías compartidos en este laboratorio se proporcionan "tal cual". UUG Cali y sus colaboradores no se hacen responsables de fallos en producción, pérdida de datos o incompatibilidades resultantes de la integración de código de terceros en proyectos externos.
           </p>
         </div>
       </div>
