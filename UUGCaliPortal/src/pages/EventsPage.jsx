@@ -132,22 +132,20 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
         <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
           <button
             onClick={() => handleFilterChange('ALL')}
-            className={`px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap ${
-              selectedFilter === 'ALL'
+            className={`px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap ${selectedFilter === 'ALL'
                 ? 'bg-black text-white'
                 : 'bg-transparent text-[#45464d] hover:bg-[#f6f3f5]'
-            }`}
+              }`}
           >
             Todos ({filteredEvents.length === eventsData.length ? eventsData.length : `${filteredEvents.length}/${eventsData.length}`})
           </button>
 
           <button
             onClick={() => handleFilterChange('TODAY')}
-            className={`px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 ${
-              selectedFilter === 'TODAY'
+            className={`px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 ${selectedFilter === 'TODAY'
                 ? 'bg-black text-white'
                 : 'bg-transparent text-[#45464d] hover:bg-[#f6f3f5]'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-sm">today</span>
             Hoy
@@ -155,11 +153,10 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
 
           <button
             onClick={() => handleFilterChange('THIS_MONTH')}
-            className={`px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 ${
-              selectedFilter === 'THIS_MONTH'
+            className={`px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 ${selectedFilter === 'THIS_MONTH'
                 ? 'bg-black text-white'
                 : 'bg-transparent text-[#45464d] hover:bg-[#f6f3f5]'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-sm">calendar_month</span>
             Este Mes
@@ -167,11 +164,10 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
 
           <button
             onClick={() => handleFilterChange('FEATURED')}
-            className={`px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 ${
-              selectedFilter === 'FEATURED'
+            className={`px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1 ${selectedFilter === 'FEATURED'
                 ? 'bg-black text-white'
                 : 'bg-transparent text-[#45464d] hover:bg-[#f6f3f5]'
-            }`}
+              }`}
           >
             <span className="material-symbols-outlined text-sm">star</span>
             Destacados
@@ -200,9 +196,8 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
             return (
               <div
                 key={event.id || event.title}
-                className={`flex flex-col justify-between p-5 bg-white/80 backdrop-blur-xl rounded-xl border border-black/10 hover:border-black/30 transition-all ${
-                  event.featured ? 'border-l-4 border-l-black' : ''
-                }`}
+                className={`flex flex-col justify-between p-5 bg-white/80 backdrop-blur-xl rounded-xl border border-black/10 hover:border-black/30 transition-all ${event.featured ? 'border-l-4 border-l-black' : ''
+                  }`}
               >
                 <div>
                   <div className="flex justify-between items-start gap-2 mb-2">
@@ -248,7 +243,10 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
                   ) : (
                     <button
                       disabled
-                      className="w-full sm:w-auto inline-block text-black/40 font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black/20 px-4 py-2 rounded cursor-not-allowed opacity-50"
+                      className={`w-full sm:w-auto inline-block font-['JetBrains_Mono'] text-xs uppercase tracking-widest px-4 py-2 rounded transition-colors ${fallbackText === 'Por Realizar'
+                          ? 'bg-black text-white border border-black'
+                          : 'bg-white/50 text-black/40 border border-black/20 opacity-60'
+                        }`}
                     >
                       {event.buttonText || fallbackText}
                     </button>
