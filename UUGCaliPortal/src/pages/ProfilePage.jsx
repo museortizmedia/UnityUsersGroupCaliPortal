@@ -35,6 +35,7 @@ export default function ProfilePage({ setActiveTab }) {
           className="w-24 h-24 rounded-full bg-[#eae7e9] object-cover border-2 border-black/10"
           alt={user.name}
           src={user.avatar}
+          draggable={false}
         />
         <div className="flex-1 text-center sm:text-left">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -92,11 +92,11 @@ export default function PackageDetailPage({ packageData, onBack }) {
             </div>
           </div>
 
-          {/* Copiar Enlace Git */}
+          {/* Copiar Enlace Git - Ajustado para ocupar el mismo ancho en móviles */}
           <div className="w-full md:w-auto shrink-0 flex flex-col items-stretch md:items-end gap-2">
             <button
               onClick={() => handleCopy(gitLink, pkgId)}
-              className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              className="w-full bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
               <span className="material-symbols-outlined text-sm">
                 {copiedId === pkgId ? 'check' : 'code'}
@@ -104,7 +104,7 @@ export default function PackageDetailPage({ packageData, onBack }) {
               <span>{copiedId === pkgId ? '¡URL Copiada!' : 'Copiar Git URL'}</span>
             </button>
             {gitLink && (
-              <code className="font-['JetBrains_Mono'] text-[11px] text-[#45464d] bg-black/5 px-3 py-1.5 rounded border border-black/5 truncate max-w-xs md:max-w-md">
+              <code className="w-full md:w-auto font-['JetBrains_Mono'] text-[11px] text-[#45464d] bg-black/5 px-3 py-1.5 rounded border border-black/5 truncate text-center md:text-left md:max-w-md">
                 {gitLink}
               </code>
             )}
@@ -121,9 +121,10 @@ export default function PackageDetailPage({ packageData, onBack }) {
               Documentación e Instalación
             </h2>
             <div className="font-['Inter'] text-sm text-[#45464d] leading-relaxed space-y-4">
-                <div className="font-['Inter'] text-sm text-[#45464d] leading-relaxed whitespace-pre-line">
-                    {packageData.readme || 'Este paquete incluye recursos y módulos optimizados para flujos de trabajo en Unity.\nVerifica que la versión de tu Editor sea compatible antes de la instalación.'}
-                </div>
+              <div className="font-['Inter'] text-sm text-[#45464d] leading-relaxed whitespace-pre-line">
+                {packageData.readme ||
+                  'Este paquete incluye recursos y módulos optimizados para flujos de trabajo en Unity.\nVerifica que la versión de tu Editor sea compatible antes de la instalación.'}
+              </div>
 
               <h3 className="font-['Space_Grotesk'] text-base font-bold text-black pt-4">
                 Guía de instalación en Unity (UPM)
@@ -149,7 +150,7 @@ export default function PackageDetailPage({ packageData, onBack }) {
           {/* Etiquetas */}
           {Array.isArray(packageData.tags) && packageData.tags.length > 0 && (
             <div className="bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6">
-              <h3 className="font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-3">
+              <h3 className="font-[#JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-3">
                 Etiquetas y Clasificación
               </h3>
               <div className="flex flex-wrap gap-2">

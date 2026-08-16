@@ -10,25 +10,16 @@ const MONTHS_ES = [
   'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'
 ];
 
-// Función helper para formatear la fecha de hoy al formato "DD MMM" (ej: "15 NOV")
-/*const getTodayFormatted = () => {
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, '0');
-  const month = MONTHS_ES[today.getMonth()];
-  return `${day} ${month}`;
-};*/
 const MONTH_MAP = {
-    ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
-    JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11
+  ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
+  JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11
 };
 
 export default function MainPage({ setActiveTab }) {
   const { isLoggedIn } = useAuth();
   const { eventsData, loading } = useEvents();
 
-  //const todayStr = getTodayFormatted();
-
-  // 2. Filtrar solo los eventos programados para HOY y limitar a máximo 2
+  // Filtrar solo los eventos programados para HOY y limitar a máximo 2
   const todayEvents = useMemo(() => {
     const currentMonthIndex = new Date().getMonth();
 
@@ -96,7 +87,7 @@ export default function MainPage({ setActiveTab }) {
       {/* Bento Grid Layout */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4">
         {/* Live Events Section (Spans 8 cols) */}
-        <div className="lg:col-span-8 bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-8 flex flex-col justify-between">
+        <div className="lg:col-span-8 bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-4 sm:p-8 flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center mb-8 border-b border-black/10 pb-4">
               <h2 className="font-['Space_Grotesk'] text-2xl font-semibold text-black flex items-center gap-2">
@@ -126,9 +117,9 @@ export default function MainPage({ setActiveTab }) {
                       key={event.id}
                       className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-white rounded border border-black/5 hover:border-black/20 transition-colors gap-4"
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-['Inter'] text-lg text-black font-bold truncate">
+                      <div className="min-w-0 flex-1 w-full">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="font-['Inter'] text-lg text-black font-bold break-words">
                             {event.title}
                           </h3>
                           {event.featured && (
@@ -137,12 +128,12 @@ export default function MainPage({ setActiveTab }) {
                             </span>
                           )}
                         </div>
-                        <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1 truncate">
+                        <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-2 break-words leading-relaxed">
                           {metaInfo.length > 0 ? metaInfo.join(' \\ ') : 'Sin detalles de ubicación/hora'}
                         </p>
                       </div>
 
-                      <div className="shrink-0 w-full sm:w-auto">
+                      <div className="shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
                         {event.rsvpUrl ? (
                           <a
                             href={event.rsvpUrl}
@@ -172,18 +163,19 @@ export default function MainPage({ setActiveTab }) {
             </div>
           </div>
 
-          {/* Botón Ver Todo posicionado abajo a la derecha */}
-          <div className="flex justify-end mt-4 gap-4">
-            {isLoggedIn && (<button
-              onClick={() => setActiveTab && setActiveTab('event-update')}
-              className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono']  text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black  cursor-pointer flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-[16px]">add</span> Nuevo Evento
-            </button>
+          {/* Botón Ver Todo posicionado abajo */}
+          <div className="flex flex-col sm:flex-row justify-end mt-6 gap-3 sm:gap-4">
+            {isLoggedIn && (
+              <button
+                onClick={() => setActiveTab && setActiveTab('event-update')}
+                className="w-full sm:w-auto justify-center bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black cursor-pointer flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[16px]">add</span> Nuevo Evento
+              </button>
             )}
             <button
               onClick={() => setActiveTab && setActiveTab('events')}
-              className="bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono']  text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black  cursor-pointer flex items-center gap-2"
+              className="w-full sm:w-auto justify-center bg-black text-white px-6 py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-[#45464d] transition-colors border border-black cursor-pointer flex items-center gap-2"
             >
               Ver todo <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </button>

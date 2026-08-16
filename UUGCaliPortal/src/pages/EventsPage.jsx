@@ -229,20 +229,20 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
                       {event.date || 'PRÓXIMAMENTE'}
                     </span>
                     {event.featured && (
-                      <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider flex items-center gap-1">
+                      <span className="bg-black text-white font-['JetBrains_Mono'] text-[10px] uppercase px-2 py-0.5 rounded tracking-wider flex items-center gap-1 shrink-0">
                         <span className="material-symbols-outlined text-[12px]">star</span>
                         Destacado
                       </span>
                     )}
                   </div>
 
-                  <h3 className="font-['Inter'] text-lg font-bold text-black mb-2 truncate">
+                  <h3 className="font-['Inter'] text-lg font-bold text-black mb-2 break-words">
                     {event.title}
                   </h3>
 
-                  <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] flex items-center gap-1 mb-4 truncate">
-                    <span className="material-symbols-outlined text-sm shrink-0">schedule</span>
-                    <span className="truncate">
+                  <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] flex items-start gap-1.5 mb-4 break-words leading-relaxed">
+                    <span className="material-symbols-outlined text-sm shrink-0 mt-0.5">schedule</span>
+                    <span className="flex-1 break-words">
                       {metaInfo.length > 0 ? metaInfo.join(' \\ ') : 'Sin detalles de ubicación/hora'}
                     </span>
                   </p>
@@ -255,14 +255,14 @@ export default function EventsPage({ setActiveTab, onSelectEvent }) {
                       href={event.rsvpUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
+                      className="w-full sm:w-auto text-center inline-block text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black px-4 py-2 rounded hover:bg-black hover:text-white transition-colors cursor-pointer"
                     >
                       {event.buttonText || fallbackText}
                     </a>
                   ) : (
                     <button
                       disabled
-                      className="inline-block text-black/40 font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black/20 px-4 py-2 rounded cursor-not-allowed opacity-50"
+                      className="w-full sm:w-auto inline-block text-black/40 font-['JetBrains_Mono'] text-xs uppercase tracking-widest border border-black/20 px-4 py-2 rounded cursor-not-allowed opacity-50"
                     >
                       {event.buttonText || fallbackText}
                     </button>

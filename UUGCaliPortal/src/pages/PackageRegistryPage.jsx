@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useHeader } from '../context/HeaderContext';
 import { useAuth } from '../context/AuthContext';
 import packagesData from '../data/packages.json';
-import PackageDetailPage from './PackageDetailPage';
 
 // Helper reutilizable para asegurar un ID único
 export const getPackageAssetId = (pkg) => {
@@ -11,12 +10,14 @@ export const getPackageAssetId = (pkg) => {
   return raw.toLowerCase().replace(/\s+/g, '-');
 };
 
-export default function PackageRegistryPage({ setActiveTab }) {
+export default function PackageRegistryPage({ 
+  setActiveTab,
+  setSelectedPackage
+}) {
   const { searchQuery, togglePin, isPinned } = useHeader();
   const { isLoggedIn } = useAuth();
 
   const [selectedCategory, setSelectedCategory] = useState('Todos');
-  const [selectedPackage, setSelectedPackage] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [showInstructions, setShowInstructions] = useState(false);
 
@@ -71,15 +72,14 @@ export default function PackageRegistryPage({ setActiveTab }) {
     });
   };
 
-  // Redireccionar al detalle si hay un paquete seleccionado
-  if (selectedPackage) {
-    return (
-      <PackageDetailPage
-        packageData={selectedPackage}
-        onBack={() => setSelectedPackage(null)}
-      />
-    );
-  }
+  const handleSelectPackage = (pkg) => {
+    if (setSelectedPackage) {
+      setSelectedPackage(pkg);
+    }
+    if (setActiveTab) {
+      setActiveTab('package');
+    }
+  };
 
   return (
     <>
@@ -188,7 +188,7 @@ export default function PackageRegistryPage({ setActiveTab }) {
               return (
                 <div
                   key={pkgId || idx}
-                  onClick={() => setSelectedPackage(pkg)}
+                  onClick={() => handleSelectPackage(pkg)}
                   className="grid grid-cols-12 gap-4 px-6 py-5 hover:bg-white/60 transition-colors group items-center cursor-pointer"
                 >
                   <div className="col-span-12 md:col-span-5 flex items-start space-x-4">
@@ -234,11 +234,12 @@ export default function PackageRegistryPage({ setActiveTab }) {
                       className="bg-white border border-black/10 hover:border-black text-black px-3 py-1.5 rounded font-['JetBrains_Mono'] text-xs flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
                       title="Copiar URL de Git para Unity"
                     >
+                      <span className="text-[10px] uppercase font-bold tracking-wider">
+                        {copiedId === pkgId ? 'Copiado' : 'Git URL'}
+                      </span>
+                      
                       <span className="material-symbols-outlined text-sm">
                         {copiedId === pkgId ? 'check' : 'code'}
-                      </span>
-                      <span className="text-[10px] uppercase font-bold tracking-wider hidden sm:inline">
-                        {copiedId === pkgId ? 'Copiado' : 'Git URL'}
                       </span>
                     </button>
 

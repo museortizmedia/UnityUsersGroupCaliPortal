@@ -1,211 +1,374 @@
 import React, { useState } from 'react';
 
 export default function DocsPage() {
-  const [openDoc, setOpenDoc] = useState(null);
+  const [activeTab, setActiveTab] = useState('community'); // 'community' | 'showcase' | 'submit'
 
-  const toggleDoc = (id) => {
-    setOpenDoc(openDoc === id ? null : id);
+  // Estado del formulario de envío
+  const [formData, setFormData] = useState({
+    title: '',
+    type: 'package', // 'package' | 'project'
+    author: '',
+    repositoryUrl: '',
+    demoUrl: '',
+    description: '',
+    tags: ''
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Recurso enviado:', formData);
+    setSubmitted(true);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      type: 'package',
+      author: '',
+      repositoryUrl: '',
+      demoUrl: '',
+      description: '',
+      tags: ''
+    });
+    setSubmitted(false);
   };
 
   return (
-    <div className="bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-8 space-y-8 max-w-6xl mx-auto">
-      {/* Encabezado */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="bg-black/5 text-black font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest px-2.5 py-1 rounded border border-black/10 font-bold">
-            Centro de Conocimiento
-          </span>
+    <div className="bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6 md:p-8 space-y-8 max-w-6xl mx-auto">
+      {/* Encabezado y Navegación Principal */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-black/10 pb-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="bg-black/5 text-black font-['JetBrains_Mono'] text-[10px] uppercase tracking-widest px-2.5 py-1 rounded border border-black/10 font-bold">
+              Unity Users Group Cali
+            </span>
+          </div>
+          <h1 className="font-['Space_Grotesk'] text-3xl md:text-4xl font-bold text-black tracking-tight">
+            Comunidad & Ecosistema Local
+          </h1>
+          <p className="font-['Inter'] text-sm text-[#45464d] mt-1 max-w-2xl">
+            Espacio para conectar con la comunidad de desarrolladores en la ciudad, visibilizar proyectos locales en Unity y compartir paquetes o herramientas Git.
+          </p>
         </div>
-        <h1 className="font-['Space_Grotesk'] text-3xl md:text-4xl font-bold text-black tracking-tight">
-          Documentación & Guías Técnicas
-        </h1>
-        <p className="font-['Inter'] text-sm text-[#45464d] mt-1 max-w-2xl">
-          Estándares de desarrollo, integración de hardware IoT (ESP32) y optimización para los proyectos e iniciativas interactivas del Unity Users Group Cali.
-        </p>
+
+        {/* Control de Pestañas */}
+        <div className="flex items-center gap-1 bg-white/60 backdrop-blur-md p-1 border border-black/10 rounded-lg shadow-sm shrink-0 flex-wrap">
+          <button
+            onClick={() => setActiveTab('community')}
+            className={`px-3.5 py-2 rounded text-xs font-['JetBrains_Mono'] uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'community'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-[#45464d] hover:text-black hover:bg-black/5'
+            }`}
+          >
+            <span className="material-symbols-outlined text-sm">groups</span>
+            <span>Comunidad</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('showcase')}
+            className={`px-3.5 py-2 rounded text-xs font-['JetBrains_Mono'] uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'showcase'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-[#45464d] hover:text-black hover:bg-black/5'
+            }`}
+          >
+            <span className="material-symbols-outlined text-sm">sports_esports</span>
+            <span>Showcase Local</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('submit')}
+            className={`px-3.5 py-2 rounded text-xs font-['JetBrains_Mono'] uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'submit'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-[#45464d] hover:text-black hover:bg-black/5'
+            }`}
+          >
+            <span className="material-symbols-outlined text-sm">add_box</span>
+            <span>Publicar</span>
+          </button>
+        </div>
       </div>
 
-      {/* Grid de Secciones */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Tarjeta 1: Estándares Unity & URP */}
-        <div className="bg-white p-6 rounded-xl border border-black/5 flex flex-col justify-between shadow-sm hover:border-black/20 transition-all">
-          <div>
-            <div className="w-12 h-12 rounded-lg bg-black/5 flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-2xl text-black">menu_book</span>
+      {/* SECCIÓN 1: SOBRE EL GRUPO DE USUARIOS DE UNITY */}
+      {activeTab === 'community' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Card Principal: Propósito */}
+          <div className="bg-white p-6 md:p-8 rounded-xl border border-black/5 shadow-sm space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-black text-2xl">diversity_3</span>
+              <h2 className="font-['Space_Grotesk'] text-2xl font-bold text-black">
+                ¿Qué es el Unity Users Group?
+              </h2>
             </div>
-            <h3 className="font-['Space_Grotesk'] font-bold text-lg mb-2 text-black">
-              Configuración Unity & URP
-            </h3>
-            <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed mb-6">
-              Estándares de iluminación, rendimiento gráficos en Render Pipelines Universal y estructura limpia de paquetes en proyectos 3D/AR.
+            <p className="font-['Inter'] text-sm text-[#45464d] leading-relaxed">
+              Somos un colectivo abierto de desarrolladores, diseñadores, artistas y creadores que utilizan <strong>Unity</strong> para dar vida a una infinidad de proyectos: desde videojuegos independientes, simulaciones e interacciones 3D, hasta experiencias educativas, realidad aumentada e instalaciones interactivas.
             </p>
           </div>
-          <button
-            onClick={() => toggleDoc('urp')}
-            className="w-full bg-black/5 hover:bg-black hover:text-white border border-black/10 text-black px-4 py-2.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors flex items-center justify-between cursor-pointer"
-          >
-            <span>{openDoc === 'urp' ? 'Cerrar Guía' : 'Ver Guía URP'}</span>
-            <span className="material-symbols-outlined text-sm">
-              {openDoc === 'urp' ? 'expand_less' : 'east'}
-            </span>
-          </button>
-        </div>
 
-        {/* Tarjeta 2: IoT & ESP32 */}
-        <div className="bg-white p-6 rounded-xl border border-black/5 flex flex-col justify-between shadow-sm hover:border-black/20 transition-all">
-          <div>
-            <div className="w-12 h-12 rounded-lg bg-black/5 flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-2xl text-black">sensors</span>
+          {/* Grid de Pilares / Encuentros */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-xl border border-black/5 space-y-3 shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center">
+                <span className="material-symbols-outlined text-black text-xl">event_repeat</span>
+              </div>
+              <h3 className="font-['Space_Grotesk'] font-bold text-base text-black">
+                5 Reuniomes Presenciales al Año
+              </h3>
+              <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed">
+                Nos encontramos físicamente cinco veces durante el año en la ciudad para compartir avances, probar builds de proyectos y conectar de forma directa con otros creadores.
+              </p>
             </div>
-            <h3 className="font-['Space_Grotesk'] font-bold text-lg mb-2 text-black">
-              Sensores IoT & ESP32
-            </h3>
-            <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed mb-6">
-              Integración de hardware, sensores ultrasónicos y comunicación con Unity en redes locales (intranets) mediante repetidores y Wi-Fi.
-            </p>
+
+            <div className="bg-white p-6 rounded-xl border border-black/5 space-y-3 shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center">
+                <span className="material-symbols-outlined text-black text-xl">handshake</span>
+              </div>
+              <h3 className="font-['Space_Grotesk'] font-bold text-base text-black">
+                Formar Comunidad
+              </h3>
+              <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed">
+                Generamos un espacio seguro e inclusivo de networking, colaboración y retroalimentación técnica donde tanto principiantes como expertos pueden crecer juntos.
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl border border-black/5 space-y-3 shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center">
+                <span className="material-symbols-outlined text-black text-xl">rocket_launch</span>
+              </div>
+              <h3 className="font-['Space_Grotesk'] font-bold text-base text-black">
+                Aportar a la Industria
+              </h3>
+              <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed">
+                Impulsamos el desarrollo tecnológico y creativo regional, promoviendo el talento local y creando herramientas de código abierto útiles para el sector.
+              </p>
+            </div>
           </div>
-          <button
-            onClick={() => toggleDoc('iot')}
-            className="w-full bg-black/5 hover:bg-black hover:text-white border border-black/10 text-black px-4 py-2.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors flex items-center justify-between cursor-pointer"
-          >
-            <span>{openDoc === 'iot' ? 'Cerrar Guía' : 'Ver Protocolo IoT'}</span>
-            <span className="material-symbols-outlined text-sm">
-              {openDoc === 'iot' ? 'expand_less' : 'east'}
-            </span>
-          </button>
         </div>
+      )}
 
-        {/* Tarjeta 3: WebGL & Despliegue */}
-        <div className="bg-white p-6 rounded-xl border border-black/5 flex flex-col justify-between shadow-sm hover:border-black/20 transition-all">
-          <div>
-            <div className="w-12 h-12 rounded-lg bg-black/5 flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-2xl text-black">deployed_code</span>
-            </div>
-            <h3 className="font-['Space_Grotesk'] font-bold text-lg mb-2 text-black">
-              Despliegue WebGL & PWA
-            </h3>
-            <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed mb-6">
-              Compresión de builds, optimización de textura/memoria para navegadores y embebido en aplicaciones interactivas web.
-            </p>
+      {/* SECCIÓN 2: SHOWCASE LOCAL & REPOSITORIOS */}
+      {activeTab === 'showcase' && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="flex items-center justify-between border-b border-black/5 pb-3">
+            <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black flex items-center gap-2">
+              <span className="material-symbols-outlined">code</span>
+              Proyectos Locales & Paquetes Git
+            </h2>
           </div>
-          <button
-            onClick={() => toggleDoc('webgl')}
-            className="w-full bg-black/5 hover:bg-black hover:text-white border border-black/10 text-black px-4 py-2.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors flex items-center justify-between cursor-pointer"
-          >
-            <span>{openDoc === 'webgl' ? 'Cerrar Guía' : 'Ver Guía WebGL'}</span>
-            <span className="material-symbols-outlined text-sm">
-              {openDoc === 'webgl' ? 'expand_less' : 'east'}
-            </span>
-          </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white p-6 rounded-xl border border-black/5 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="bg-black/5 text-black font-['JetBrains_Mono'] text-[10px] uppercase font-bold px-2 py-0.5 rounded border border-black/10">
+                  Showcase Destacado
+                </span>
+                <span className="font-['JetBrains_Mono'] text-xs text-[#45464d]">Cali, CO</span>
+              </div>
+              <h3 className="font-['Space_Grotesk'] font-bold text-lg text-black">
+                Experiencias Interactivas & Proyectos 3D
+              </h3>
+              <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed">
+                Descubre los proyectos desarrollados por miembros del grupo en la ciudad, desde juegos independientes hasta experiencias educativas e interactivas.
+              </p>
+              <div className="pt-2">
+                <button
+                  onClick={() => setActiveTab('submit')}
+                  className="bg-black text-white px-4 py-2 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider hover:bg-black/80 transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Someter mi Proyecto</span>
+                  <span className="material-symbols-outlined text-sm">east</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl border border-black/5 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="bg-black/5 text-black font-['JetBrains_Mono'] text-[10px] uppercase font-bold px-2 py-0.5 rounded border border-black/10">
+                  Open Source
+                </span>
+                <span className="font-['JetBrains_Mono'] text-xs text-[#45464d]">Git / UPM</span>
+              </div>
+              <h3 className="font-['Space_Grotesk'] font-bold text-lg text-black">
+                Librerías & Módulos para Desarrolladores
+              </h3>
+              <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed">
+                Accede a enlaces directos de repositorios Git con paquetes reutilizables para Unity diseñados por la comunidad para agilizar tus desarrollos.
+              </p>
+              <div className="pt-2">
+                <button
+                  onClick={() => setActiveTab('submit')}
+                  className="bg-black/5 hover:bg-black hover:text-white border border-black/10 text-black px-4 py-2 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider transition-colors inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Compartir Enlace Git</span>
+                  <span className="material-symbols-outlined text-sm">add</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+      )}
 
-      </div>
-
-      {/* Contenido Desplegable Completo / Tutoriales */}
-      {openDoc && (
-        <div className="bg-white rounded-xl border border-black/10 p-6 md:p-8 space-y-6 animate-fadeIn">
-          
-          {/* SECCIÓN URP */}
-          {openDoc === 'urp' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 border-b border-black/10 pb-4">
-                <span className="material-symbols-outlined text-2xl text-black">menu_book</span>
-                <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black">
-                  Guía de Configuración Estándar URP (Universal Render Pipeline)
-                </h2>
+      {/* SECCIÓN 3: FORMULARIO DE PUBLICACIÓN */}
+      {activeTab === 'submit' && (
+        <div className="max-w-3xl mx-auto animate-fadeIn">
+          {submitted ? (
+            <div className="bg-white border border-emerald-500/30 rounded-xl p-8 text-center space-y-4 shadow-sm">
+              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                <span className="material-symbols-outlined text-3xl">check_circle</span>
               </div>
-              <p className="font-['Inter'] text-sm text-[#45464d] leading-relaxed">
-                Para mantener la consistencia estética y de rendimiento en los proyectos comunitarios, recomendamos la versión LTS de Unity (2022.3+) con las siguientes configuraciones de renderizado:
+              <h2 className="font-['Space_Grotesk'] text-2xl font-bold text-black">
+                ¡Registro Enviado!
+              </h2>
+              <p className="font-['Inter'] text-xs text-[#45464d] max-w-md mx-auto">
+                Tu proyecto/paquete <strong>"{formData.title}"</strong> ha sido registrado. Un organizador revisará la información antes de integrarlo al catálogo.
               </p>
-
-              <div className="bg-black/5 p-4 rounded-lg font-['JetBrains_Mono'] text-xs space-y-3">
-                <p className="font-bold text-black">📋 Lista de verificación para el Render Pipeline Assets:</p>
-                <ul className="list-disc list-inside space-y-1 text-[#45464d]">
-                  <li><strong>Lighting:</strong> Main Light con sombras Hard/Soft habilitadas; habilitar Lightmaps baking para optimizar entornos.</li>
-                  <li><strong>Shadow Distance:</strong> Ajustar a un rango máximo de 35m-50m para móviles o WebGL.</li>
-                  <li><strong>Post-Processing:</strong> Usar Volume Profile ligero (Bloom sutil + Color Adjustments para contraste equilibrado).</li>
-                  <li><strong>Assets 3D:</strong> Utilizar materiales Lit/SimpleLit integrados con PBR básico.</li>
-                </ul>
-              </div>
+              <button
+                onClick={resetForm}
+                className="bg-black text-white px-5 py-2.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors cursor-pointer"
+              >
+                Enviar Otro Elemento
+              </button>
             </div>
-          )}
-
-          {/* SECCIÓN IOT */}
-          {openDoc === 'iot' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 border-b border-black/10 pb-4">
-                <span className="material-symbols-outlined text-2xl text-black">sensors</span>
+          ) : (
+            <form onSubmit={handleSubmit} className="bg-white border border-black/5 rounded-xl p-6 md:p-8 space-y-6 shadow-sm">
+              <div className="border-b border-black/5 pb-4">
                 <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black">
-                  Arquitectura IoT: Módulos ESP32 + Repetidores Wi-Fi + Unity
+                  Publicar Proyecto o Paquete Git
                 </h2>
-              </div>
-              <p className="font-['Inter'] text-sm text-[#45464d] leading-relaxed">
-                Guía técnica para conectar sensores de proximidad ultrasónicos / movimiento a ejecutables de Unity en exhibiciones e instalaciones locales.
-              </p>
-
-              <div className="bg-black/5 p-4 rounded-lg font-['JetBrains_Mono'] text-xs space-y-2 text-[#45464d]">
-                <p className="font-bold text-black">📡 Estructura de Red e Intranet Local:</p>
-                <p>• <strong>Topología:</strong> Al estar los ESP32 alejados del AP central, se emplean repetidores inalámbricos que amplían la red sin necesidad de segmentación por VLAN.</p>
-                <p>• <strong>Protocolo recomendado:</strong> Envío de paquetes UDP livianos o peticiones HTTP POST locales directas al servidor o ejecutable central de Unity.</p>
+                <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-0.5">
+                  Formulario directo para desarrolladores de la comunidad Unity.
+                </p>
               </div>
 
-              <div className="bg-black text-white p-4 rounded-lg font-['JetBrains_Mono'] text-xs overflow-x-auto">
-                <p className="text-emerald-400 font-bold mb-2">// Ej. C# Receptor UDP en Unity para Sensores Ultrasonido</p>
-                <pre>{`using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using UnityEngine;
-
-public class ESP32SensorListener : MonoBehaviour {
-    UdpClient udpClient;
-    int port = 8080;
-
-    void Start() {
-        udpClient = new UdpClient(port);
-        udpClient.BeginReceive(OnDataReceived, null);
-    }
-
-    void OnDataReceived(System.IAsyncResult result) {
-        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
-        byte[] data = udpClient.EndReceive(result, ref remoteEP);
-        string message = Encoding.UTF8.GetString(data);
-        Debug.Log("Distancia del sensor: " + message + " cm");
-        udpClient.BeginReceive(OnDataReceived, null);
-    }
-}`}</pre>
-              </div>
-            </div>
-          )}
-
-          {/* SECCIÓN WEBGL */}
-          {openDoc === 'webgl' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 border-b border-black/10 pb-4">
-                <span className="material-symbols-outlined text-2xl text-black">deployed_code</span>
-                <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black">
-                  Optimización de Compilación WebGL
-                </h2>
-              </div>
-              <p className="font-['Inter'] text-sm text-[#45464d] leading-relaxed">
-                Pautas para empaquetar aplicaciones interactivas en la web minimizando el tiempo de carga y uso de memoria en navegadores de escritorio y móviles.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-['JetBrains_Mono'] text-xs">
-                <div className="border border-black/10 p-4 rounded-lg bg-black/5">
-                  <h4 className="font-bold text-black mb-2">⚙️ Player Settings Recomendados</h4>
-                  <p className="text-[#45464d]"> Compression Format: Brotli o Gzip</p>
-                  <p className="text-[#45464d]"> Enable Exceptions: None (Reduce el tamaño de build)</p>
-                  <p className="text-[#45464d]"> Data Caching: Habilitado</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Nombre */}
+                <div className="space-y-1">
+                  <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
+                    Nombre del Elemento *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    required
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    placeholder="Ej. Cali Interactive Map / URP Utils"
+                    className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['Inter'] focus:outline-none focus:border-black"
+                  />
                 </div>
-                <div className="border border-black/10 p-4 rounded-lg bg-black/5">
-                  <h4 className="font-bold text-black mb-2">🖼️ Texturas y Audio</h4>
-                  <p className="text-[#45464d]"> Texturas: Máximo 2048px (Compresión ASTC o Crunched)</p>
-                  <p className="text-[#45464d]"> Audio: Force to Mono + Compressed In Memory</p>
+
+                {/* Tipo */}
+                <div className="space-y-1">
+                  <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
+                    Tipo de Publicación *
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['Inter'] focus:outline-none focus:border-black cursor-pointer"
+                  >
+                    <option value="package">Paquete Git / UPM (Para Devs)</option>
+                    <option value="project">Proyecto Unity (Showcase Local)</option>
+                  </select>
+                </div>
+
+                {/* Autor */}
+                <div className="space-y-1">
+                  <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
+                    Creador / Equipo *
+                  </label>
+                  <input
+                    type="text"
+                    name="author"
+                    required
+                    value={formData.author}
+                    onChange={handleInputChange}
+                    placeholder="Tu nombre o estudio local"
+                    className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['Inter'] focus:outline-none focus:border-black"
+                  />
+                </div>
+
+                {/* URL Git / Repo */}
+                <div className="space-y-1">
+                  <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
+                    Enlace Git / Repositorio *
+                  </label>
+                  <input
+                    type="url"
+                    name="repositoryUrl"
+                    required
+                    value={formData.repositoryUrl}
+                    onChange={handleInputChange}
+                    placeholder="https://github.com/usuario/mi-repo.git"
+                    className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['JetBrains_Mono'] focus:outline-none focus:border-black"
+                  />
                 </div>
               </div>
-            </div>
-          )}
 
+              {/* URL Demo (Opcional) */}
+              <div className="space-y-1">
+                <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
+                  URL de Demo o WebGL (Opcional)
+                </label>
+                <input
+                  type="url"
+                  name="demoUrl"
+                  value={formData.demoUrl}
+                  onChange={handleInputChange}
+                  placeholder="https://itch.io / https://mi-demo.com"
+                  className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['JetBrains_Mono'] focus:outline-none focus:border-black"
+                />
+              </div>
+
+              {/* Descripción */}
+              <div className="space-y-1">
+                <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
+                  Descripción Corta *
+                </label>
+                <textarea
+                  name="description"
+                  required
+                  rows={3}
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Explica de qué trata tu juego/proyecto o qué resuelve tu paquete de Unity..."
+                  className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['Inter'] focus:outline-none focus:border-black"
+                />
+              </div>
+
+              {/* Etiquetas */}
+              <div className="space-y-1">
+                <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
+                  Etiquetas (separadas por comas)
+                </label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleInputChange}
+                  placeholder="3d, indie, upm, ui"
+                  className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['JetBrains_Mono'] focus:outline-none focus:border-black"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-black text-white py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              >
+                <span>Enviar Publicación</span>
+                <span className="material-symbols-outlined text-sm">send</span>
+              </button>
+            </form>
+          )}
         </div>
       )}
     </div>

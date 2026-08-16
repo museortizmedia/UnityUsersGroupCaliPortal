@@ -152,6 +152,9 @@ function AppContent() {
 
   // Cambia la pestaña y actualiza el Hash de la barra de navegación
   const setActiveTab = (tabId, shouldPushState = true) => {
+    if (tabId === 'packages') {
+      setSelectedPackage(null); // Limpia la selección al volver a la lista general
+    }
     setActiveTabState(tabId);
     if (shouldPushState) {
       const path = TAB_TO_PATH[tabId] || '/';
@@ -217,8 +220,18 @@ function AppContent() {
         return (
           <PackageRegistryPage 
             setActiveTab={setActiveTab} 
-            selectedPackage={selectedPackage}
             setSelectedPackage={setSelectedPackage}
+          />
+        );
+
+      case 'package': // Nueva ruta dedicada exclusivamente al detalle
+        return (
+          <PackageDetailPage
+            packageData={selectedPackage}
+            onBack={() => {
+              setSelectedPackage(null);
+              setActiveTab('packages');
+            }}
           />
         );
       
@@ -226,18 +239,22 @@ function AppContent() {
         return <PackageUploadPage setActiveTab={setActiveTab} />;
       
       case 'event-update':
-        return <EventUploadPage
+        return (
+          <EventUploadPage
             setActiveTab={setActiveTab} 
             selectedPackage={selectedPackage}
             setSelectedPackage={setSelectedPackage}
           />
+        );
       
       case 'events':
-        return <EventsPage
-          setActiveTab={setActiveTab} 
+        return (
+          <EventsPage
+            setActiveTab={setActiveTab} 
             selectedPackage={selectedPackage}
             setSelectedPackage={setSelectedPackage}
           />
+        );
       
       default: 
         return <NotFoundPage setActiveTab={setActiveTab} />;

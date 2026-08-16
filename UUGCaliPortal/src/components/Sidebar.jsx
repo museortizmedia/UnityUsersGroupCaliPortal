@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
   const { user, isLoggedIn, logout } = useAuth();
 
-  // Opciones de menú según el estado de sesión
   const menuItems = [
     { id: 'main', label: 'Main', icon: 'grid_view' },
     { id: 'events', label: 'Events', icon: 'calendar_clock'},
@@ -12,13 +11,12 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
     { id: 'packages', label: 'Packages', icon: 'deployed_code' },
     { id: 'library', label: 'My Library', icon: 'package' },
     { id: 'community', label: 'Community', icon: 'groups' },
-    //...(isLoggedIn ? [{ id: 'event-update', label: 'New Event', icon: 'calendar_clock', level: 2 }] : []),
   ];
 
   return (
     <aside
-      className={`sticky top-0 h-screen bg-[#fcf8fa] text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border-r border-black/10 flex flex-col py-6 transition-all duration-300 ease-in-out shrink-0 ${
-        isOpen ? 'w-72 opacity-100' : 'w-0 opacity-0 overflow-hidden border-r-0'
+      className={`fixed md:sticky top-0 left-0 h-screen bg-[#fcf8fa] text-black font-['JetBrains_Mono'] text-xs uppercase tracking-widest border-r border-black/10 flex flex-col py-6 transition-all duration-300 ease-in-out shrink-0 z-50 ${
+        isOpen ? 'w-72 opacity-100 translate-x-0' : 'w-0 opacity-0 -translate-x-full md:translate-x-0 overflow-hidden border-r-0'
       }`}
     >
       <div className="flex flex-col h-full w-72 overflow-hidden">
@@ -32,7 +30,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
           </div>
         </div>
 
-        {/* Bloque del Perfil (Solo si el usuario está logueado) */}
+        {/* Bloque del Perfil */}
         {isLoggedIn ? (
           <div className="px-6 mb-6 shrink-0">
             <button
@@ -42,15 +40,15 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
               <img
                 className="w-10 h-10 rounded-full bg-[#eae7e9] object-cover border border-black/10 group-hover:border-black transition-colors"
                 alt="User Profile"
-                src={user.avatar}
+                src={user?.avatar}
                 draggable="false"
               />
               <div className="overflow-hidden">
                 <div className="font-['Space_Grotesk'] font-bold text-black group-hover:underline truncate">
-                  {user.name}
+                  {user?.name}
                 </div>
                 <div className="text-[10px] text-[#45464d] font-normal lowercase truncate">
-                  {user.role}
+                  {user?.role}
                 </div>
               </div>
             </button>
@@ -67,7 +65,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
           </div>
         )}
 
-        {/* Lista de Navegación (Flex-1 + overflow-y-auto para scroll interno únicamente aquí) */}
+        {/* Lista de Navegación */}
         <div className="flex-1 overflow-y-auto space-y-1 scrollbar-thin">
           {menuItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -88,37 +86,33 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
           })}
         </div>
 
-        {/* Bloque inferior: mt-auto asegura que esto se empuje al fondo del sidebar */}
+        {/* Bloque inferior */}
         <div className="mt-auto shrink-0 pt-4">
-          {/* Acciones para publicar o cerrar sesión */}
           {isLoggedIn && (
             <div className="px-6 mb-4 space-y-2">
-              { isLoggedIn && <>
               <button
-                  onClick={() => setActiveTab('event-update')}
-                  className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-sm">add</span>
-                  New Event
-                </button> 
-                
-                <button
-                  onClick={() => setActiveTab('update-project')}
-                  className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-sm">add</span>
-                  New Project
-                </button>
-                
-                <button
-                  onClick={() => setActiveTab('package-upload')}
-                  className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-sm">add</span>
-                  New Package
-                </button>
- 
-              </>}
+                onClick={() => setActiveTab('event-update')}
+                className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">add</span>
+                New Event
+              </button> 
+              
+              <button
+                onClick={() => setActiveTab('update-project')}
+                className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">add</span>
+                New Project
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('package-upload')}
+                className="w-full bg-black text-white py-3 rounded hover:bg-[#45464d] transition-colors cursor-pointer whitespace-nowrap flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">add</span>
+                New Package
+              </button>
 
               <button
                 onClick={logout}
@@ -130,7 +124,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
             </div>
           )}
 
-          {/* Enlaces de soporte/docs siempre anclados abajo */}
+          {/* Enlaces de soporte/docs */}
           <div className="px-6 space-y-2 border-t border-black/5 pt-4">
             <button
               onClick={() => setActiveTab('support')}

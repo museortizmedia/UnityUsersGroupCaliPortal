@@ -1,23 +1,35 @@
 import React, { useState } from 'react';
 import { useHeader } from '../context/HeaderContext';
+import packagesData from '../data/packages.json';
+
+// Helper de ID consistente
+export const getPackageAssetId = (pkg) => {
+  if (!pkg) return '';
+  if (pkg.id) return pkg.id;
+  const raw = pkg.name || pkg.title || 'paquete';
+  return raw.toLowerCase().replace(/\s+/g, '-');
+};
 
 export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setSelectedPackage }) {
-  // Extraemos las propiedades necesarias desde HeaderContext
   const { searchQuery, pinnedAssets = [], togglePin } = useHeader();
-  
-  // Estado para el filtro interno de la página: 'All' | 'Projects' | 'Packages'
   const [libraryTypeFilter, setLibraryTypeFilter] = useState('All');
 
-  // Helper para determinar de forma segura si un asset es un Proyecto o un Paquete
+  // Helper para determinar si un asset es Proyecto o Paquete
   const checkIsProject = (asset) => {
-    const rawType = String(asset?.type || '').toLowerCase();
-    const rawCategory = String(asset?.category || '').toLowerCase();
+    if (!asset) return false;
+    const rawType = String(asset.type || '').toLowerCase();
+    const rawCategory = String(asset.category || '').toLowerCase();
     
+    if (rawType.includes('package') || rawType.includes('paquete') || rawType.includes('upm')) {
+      return false;
+    }
+
     return (
       rawType === 'project' ||
       rawCategory === 'projects' ||
-      Boolean(asset?.coverImage) || // Los proyectos traen coverImage
-      Boolean(asset?.status)        // Los proyectos traen status
+      rawCategory === 'proyectos' ||
+      Boolean(asset.coverImage) ||
+      Boolean(asset.status)
     );
   };
 
@@ -27,26 +39,33 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
 
     if (isProject) {
       if (typeof setSelectedProjectId === 'function') {
-        setSelectedProjectId(asset.id);
+        setSelectedProjectId(asset.id || asset.name);
       }
       if (typeof setActiveTab === 'function') {
         setActiveTab('project-detail');
       }
     } else {
+      // 1. Buscamos el paquete completo en packagesData usando ID o Nombre
+      const targetId = getPackageAssetId(asset);
+      const fullPackage = (packagesData || []).find(
+        (p) => getPackageAssetId(p) === targetId || p.name === asset.name || p.title === asset.title
+      ) || asset; // Si no lo encuentra, usa la data guardada como fallback
+
+      // 2. Establecemos el paquete seleccionado en el estado superior
       if (typeof setSelectedPackage === 'function') {
-        setSelectedPackage(asset);
+        setSelectedPackage(fullPackage);
       }
+
+      // 3. Redirigimos a la vista dedicada del detalle del paquete
       if (typeof setActiveTab === 'function') {
-        setActiveTab('package-registry');
+        setActiveTab('package');
       }
     }
   };
 
-  // Filtrado de elementos guardados
   const filteredAssets = pinnedAssets.filter((asset) => {
     if (!asset) return false;
 
-    // 1. Coincidencia por Búsqueda (Buscador Global)
     const query = (searchQuery ?? '').trim().toLowerCase();
     const title = String(asset.title || asset.name || '').toLowerCase();
     const description = String(asset.description || '').toLowerCase();
@@ -58,7 +77,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
       description.includes(query) ||
       tags.some((tag) => String(tag).toLowerCase().includes(query));
 
-    // 2. Coincidencia por Filtro de Tipo Local (Todos / Proyectos / Paquetes)
     const isProject = checkIsProject(asset);
     const matchesTypeFilter =
       libraryTypeFilter === 'All' ||
@@ -70,7 +88,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
 
   return (
     <div className="space-y-6 mb-12">
-      {/* Header Local de la Página */}
       <div className="border-b border-black/10 pb-4 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -86,7 +103,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
           </p>
         </div>
 
-        {/* Control Bar: Filtros de Tipo */}
         <div className="flex items-center gap-2 bg-white/60 backdrop-blur-md p-1 border border-black/10 rounded-lg shadow-sm">
           {['All', 'Projects', 'Packages'].map((filter) => (
             <button
@@ -104,7 +120,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
         </div>
       </div>
 
-      {/* Indicador de Filtro Activo por Búsqueda */}
       {searchQuery && (
         <div className="text-xs font-['JetBrains_Mono'] text-black/60 bg-black/5 px-3 py-1.5 rounded-full border border-black/10 inline-flex items-center gap-2">
           <span className="material-symbols-outlined text-sm">search</span>
@@ -114,7 +129,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
         </div>
       )}
 
-      {/* Grid de Elementos Guardados */}
       {filteredAssets.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAssets.map((asset) => {
@@ -128,7 +142,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
                 className="bg-white/40 backdrop-blur-md border border-black/10 hover:border-black/30 rounded-xl p-5 transition-all shadow-sm flex flex-col justify-between group relative cursor-pointer"
               >
                 <div>
-                  {/* Encabezado de Tarjeta */}
                   <div className="flex justify-between items-start mb-3 gap-2">
                     <span
                       className={`text-[10px] font-['JetBrains_Mono'] uppercase tracking-wider px-2 py-0.5 border rounded font-bold ${
@@ -145,7 +158,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
                         {asset.version || 'v1.0.0'}
                       </span>
 
-                      {/* Botón Desmarcar Estrella */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -159,12 +171,10 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
                     </div>
                   </div>
 
-                  {/* Título */}
                   <h3 className="font-['Space_Grotesk'] font-bold text-lg text-black mb-2 leading-snug group-hover:underline">
                     {itemTitle}
                   </h3>
 
-                  {/* Descripción */}
                   {asset.description && (
                     <p className="font-['Inter'] text-xs text-[#45464d] line-clamp-2 mb-2">
                       {asset.description}
@@ -172,7 +182,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
                   )}
                 </div>
 
-                {/* Footer / Etiquetas */}
                 <div className="mt-4 pt-3 border-t border-black/5 flex flex-wrap gap-1.5 items-center">
                   {Array.isArray(asset.tags) && asset.tags.length > 0 ? (
                     asset.tags.map((tag) => (
@@ -194,7 +203,6 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
           })}
         </div>
       ) : (
-        /* Estado Vacío */
         <div className="flex flex-col items-center justify-center py-20 text-center bg-white/40 backdrop-blur-md border border-dashed border-black/20 rounded-xl">
           <span className="material-symbols-outlined text-4xl text-black/30 mb-2">
             star_outline

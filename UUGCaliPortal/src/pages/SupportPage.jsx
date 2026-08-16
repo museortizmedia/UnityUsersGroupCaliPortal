@@ -10,20 +10,32 @@ export default function SupportPage() {
         </p>
       </div>
 
-      {/* Tarjeta de Liderazgo / Info */}
-      <div className="bg-black/5 border border-black/10 rounded-lg p-4 flex items-center justify-between gap-4">
+      {/* Tarjeta de Liderazgo / Info con Botón Integrado */}
+      <div className="bg-black/5 border border-black/10 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-['Space_Grotesk'] font-bold shrink-0">
             DO
           </div>
           <div>
-            <h3 className="font-['Space_Grotesk'] font-bold text-sm text-black">Diego Ortiz</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-['Space_Grotesk'] font-bold text-sm text-black">Diego Ortiz</h3>
+              <span className="bg-emerald-500/10 text-emerald-700 text-[10px] font-['JetBrains_Mono'] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold border border-emerald-500/20">
+                En línea
+              </span>
+            </div>
             <p className="font-['JetBrains_Mono'] text-xs text-[#45464d]">Líder de la Comunidad (Unity Users Group Cali)</p>
           </div>
         </div>
-        <span className="bg-emerald-500/10 text-emerald-700 text-[10px] font-['JetBrains_Mono'] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold border border-emerald-500/20 shrink-0">
-          En línea
-        </span>
+
+        <a
+          href="https://wa.me/573197293775"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 bg-white/40 border border-black/10 text-black px-4 py-2 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/5 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+        >
+          <span>Enviar Mensaje</span>
+          <span className="material-symbols-outlined text-sm">send</span>
+        </a>
       </div>
 
       {/* Opciones de Contacto / Botones */}
@@ -63,6 +75,8 @@ export default function SupportPage() {
           </div>
           <a
             href="mailto:museortiz@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
             className="shrink-0 bg-white border border-black/10 text-black px-5 py-2.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/5 transition-colors flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>Enviar Mensaje</span>
