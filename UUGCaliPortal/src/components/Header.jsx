@@ -18,7 +18,7 @@ export default function Header({ setActiveTab, toggleSidebar, isSidebarOpen }) {
 
   return (
     <nav className="bg-[#fcf8fa]/80 backdrop-blur-xl fixed top-0 w-full z-40 border-b border-black/10">
-      <div className="flex justify-between items-center px-4 md:px-12 py-3 max-w-[1440px] mx-auto w-full gap-2 sm:gap-4">
+      <div className="flex justify-between items-center px-4 md:px-12 py-3 max-w-[1400px] mx-auto w-full gap-2 sm:gap-4">
 
         {/* LADO IZQUIERDO: Perfil (Móvil) + Logo */}
         <div className="flex items-center gap-2">
