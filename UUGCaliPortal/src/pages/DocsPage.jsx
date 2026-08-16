@@ -13,17 +13,46 @@ export default function DocsPage() {
     description: '',
     tags: ''
   });
+  
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Recurso enviado:', formData);
-    setSubmitted(true);
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/museortiz@gmail.com", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          _subject: `[UUG Cali] Nueva publicación: ${formData.title}`,
+          _template: "table",
+          ...formData
+        })
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+      } else {
+        setErrorMsg("Hubo un problema al procesar el envío. Inténtalo de nuevo.");
+      }
+    } catch (error) {
+      console.error("Error al enviar el formulario:", error);
+      setErrorMsg("Error de red al conectar con el servicio de correo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -37,6 +66,7 @@ export default function DocsPage() {
       tags: ''
     });
     setSubmitted(false);
+    setErrorMsg(null);
   };
 
   return (
@@ -120,7 +150,7 @@ export default function DocsPage() {
                 <span className="material-symbols-outlined text-black text-xl">event_repeat</span>
               </div>
               <h3 className="font-['Space_Grotesk'] font-bold text-base text-black">
-                5 Reuniomes Presenciales al Año
+                5 Reuniones Presenciales al Año
               </h3>
               <p className="font-['Inter'] text-xs text-[#45464d] leading-relaxed">
                 Nos encontramos físicamente cinco veces durante el año en la ciudad para compartir avances, probar builds de proyectos y conectar de forma directa con otros creadores.
@@ -248,6 +278,12 @@ export default function DocsPage() {
                 </p>
               </div>
 
+              {errorMsg && (
+                <div className="bg-red-50 border border-red-200 text-red-600 rounded p-3 text-xs font-['Inter']">
+                  {errorMsg}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Nombre */}
                 <div className="space-y-1">
@@ -362,10 +398,13 @@ export default function DocsPage() {
 
               <button
                 type="submit"
-                className="w-full bg-black text-white py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                disabled={loading}
+                className="w-full bg-black text-white py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
               >
-                <span>Enviar Publicación</span>
-                <span className="material-symbols-outlined text-sm">send</span>
+                <span>{loading ? 'Enviando...' : 'Enviar Publicación'}</span>
+                <span className="material-symbols-outlined text-sm">
+                  {loading ? 'hourglass_top' : 'send'}
+                </span>
               </button>
             </form>
           )}
