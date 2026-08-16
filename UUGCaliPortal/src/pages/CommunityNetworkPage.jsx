@@ -197,7 +197,7 @@ export default function CommunityNetworkPage() {
                                 return (
                                     <div
                                         key={`${event.id}-${startIndex + idx}`}
-                                        className="group relative flex items-center gap-3 p-2.5 rounded hover:bg-[#f6f3f5] transition-colors border-l-2 border-transparent hover:border-black cursor-pointer h-[70px] overflow-hidden"
+                                        className="group relative flex items-center gap-3 p-2.5 rounded hover:bg-[#f6f3f5] transition-colors border-l-2 border-transparent hover:border-black cursor-pointer min-h-[70px] h-auto overflow-hidden"
                                     >
                                         <div className="flex flex-col items-center justify-center min-w-[3rem] shrink-0">
                                             <span className="font-['JetBrains_Mono'] text-[10px] text-[#45464d] font-medium uppercase tracking-wider leading-none mb-0.5">
@@ -208,19 +208,26 @@ export default function CommunityNetworkPage() {
                                             </span>
                                         </div>
 
-                                        <div className="flex-1 min-w-0 flex flex-col justify-center pr-2">
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="font-['Inter'] text-sm font-medium text-black group-hover:underline truncate leading-snug">
-                                                    {event.title}
-                                                </h4>
-                                            </div>
-                                            <p className="font-['JetBrains_Mono'] text-[11px] text-[#45464d] flex items-center gap-1 mt-0.5 truncate">
+                                        <div className="flex-1 min-w-0 flex flex-col justify-center pr-2 py-0.5">
+                                            <h4 className="font-['Inter'] text-sm font-medium text-black group-hover:underline truncate leading-snug">
+                                                {event.title}
+                                            </h4>
+
+                                            <p className="font-['JetBrains_Mono'] text-[10px] text-[#45464d] flex items-center gap-1 mt-0.5 truncate">
                                                 <span className="material-symbols-outlined text-[13px] shrink-0">
                                                     schedule
                                                 </span>
                                                 <span className="truncate">
                                                     {event.location} • {event.time}
                                                 </span>
+                                            </p>
+
+                                            {/* Descripción con line-clamp para multilínea controlada */}
+                                            <p
+                                                className="font-['JetBrains_Mono'] text-[9px] text-[#71727a] mt-1 line-clamp-1 leading-tight break-words"
+                                                title={event.description}
+                                            >
+                                                {event.description}
                                             </p>
                                         </div>
 
@@ -239,39 +246,39 @@ export default function CommunityNetworkPage() {
                             })
                         ) : (
                             <p className="font-['JetBrains_Mono'] text-xs text-[#45464d]">
-                                No hay eventos programados para este mes.
+                                No hay eventos destacados.
                             </p>
                         )}
                     </div>
                 </section>
 
                 {/* Sección del Mapa de Ubicación: Cali, Colombia (1/3 de ancho) */}
-<section className="md:col-span-4 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6 flex flex-col justify-between">
-    <div>
-        <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black mb-1">
-            Ubicación
-        </h2>
-        <p className="font-['JetBrains_Mono'] text-xs text-[#45464d]">
-            Cali, Colombia
-        </p>
-    </div>
+                <section className="md:col-span-4 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6 flex flex-col justify-between">
+                    <div>
+                        <h2 className="font-['Space_Grotesk'] text-xl font-semibold text-black mb-1">
+                            Ubicación
+                        </h2>
+                        <p className="font-['JetBrains_Mono'] text-xs text-[#45464d]">
+                            Cali, Colombia
+                        </p>
+                    </div>
 
-    <div className="relative w-full h-48 bg-[#f8f9fa] border border-black/5 rounded-lg my-4 overflow-hidden flex items-center justify-center">
-        {/* Imagen del mapa en alta definición */}
-        <img 
-            src={`${import.meta.env.BASE_URL}/world_map.webp`} 
-            alt="Mapa de América" 
-            className="w-full h-full object-contain p-2 opacity-80"
-        />
+                    <div className="relative w-full h-48 bg-[#f8f9fa] border border-black/5 rounded-lg my-4 overflow-hidden flex items-center justify-center">
+                        {/* Imagen del mapa en alta definición */}
+                        <img
+                            src={`${import.meta.env.BASE_URL}/world_map.webp`}
+                            alt="Mapa de América"
+                            className="w-full h-full object-contain p-2 opacity-80"
+                        />
 
-        {/* Indicador animado sobre Cali */}
-        {/* Ajusta los porcentajes de top/left según el encuadre exacto de tu imagen */}
-        <div className="absolute top-[47%] left-[30%] flex items-center justify-center">
-            <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-white shadow-sm"></span>
-        </div>
-    </div>
-</section>
+                        {/* Indicador animado sobre Cali */}
+                        {/* Ajusta los porcentajes de top/left según el encuadre exacto de tu imagen */}
+                        <div className="absolute top-[47%] left-[30%] flex items-center justify-center">
+                            <span className="animate-ping absolute inline-flex h-4 w-4 rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-white shadow-sm"></span>
+                        </div>
+                    </div>
+                </section>
 
                 {/* Previsualización del RSS Feed Endpoint (2/3 de ancho restantes) */}
                 <section className="md:col-span-8 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl p-6 flex flex-col justify-between">

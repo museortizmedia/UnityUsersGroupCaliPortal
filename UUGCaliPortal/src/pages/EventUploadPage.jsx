@@ -104,13 +104,19 @@ export default function EventUploadPage() {
     e.preventDefault();
     if (!formData.title || !formData.date) return;
 
+    // Normalizar fecha para incluir año por defecto si solo se escribe "DD MMM"
+    const rawDate = formData.date.trim();
+    const currentYear = new Date().getFullYear();
+    const dateParts = rawDate.split(/\s+/);
+    const formattedDate = dateParts.length === 2 ? `${rawDate} ${currentYear}` : rawDate;
+
     const eventSlug = formData.title.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const newId = editingId || (formData.id.trim() ? formData.id.trim() : `event-${eventSlug || Date.now()}`);
 
     const eventPayload = {
       id: newId,
       title: formData.title,
-      date: formData.date,
+      date: formattedDate,
       time: formData.time || '',
       location: formData.location || '',
       description: formData.description || '',
@@ -125,7 +131,7 @@ export default function EventUploadPage() {
       setStatusMsg({ type: 'info', text: 'Evento actualizado localmente. Recuerda hacer commit.' });
     } else {
       updatedList = [eventPayload, ...fullJsonData];
-      setStatusMsg({ type: 'info', text: 'Evento agregado a la lista local. Haz clic en "Guardar Cambios" para subir a GitHub.' });
+      setStatusMsg({ type: 'info', text: 'Evento agregado a la lista local. Haz clic en "Publicar Cambios" para subir a GitHub.' });
     }
 
     setFullJsonData(updatedList);
@@ -322,13 +328,13 @@ export default function EventUploadPage() {
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 sm:col-span-6">
                   <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
-                    Fecha (ej: 15 AGO) *
+                    Fecha (ej: 05 NOV 2026) *
                   </label>
                   <input
                     type="text"
                     name="date"
                     required
-                    placeholder="15 AGO"
+                    placeholder="05 NOV 2026"
                     value={formData.date}
                     onChange={handleInputChange}
                     className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['JetBrains_Mono'] text-xs text-black outline-none"
@@ -474,7 +480,7 @@ export default function EventUploadPage() {
                           className="p-4 flex items-center justify-between cursor-pointer hover:bg-black/5 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="bg-black/5 border border-black/10 rounded px-2.5 py-1 text-center min-w-[50px]">
+                            <div className="bg-black/5 border border-black/10 rounded px-2.5 py-1 text-center min-w-[70px]">
                               <span className="block font-['JetBrains_Mono'] text-xs font-bold text-black uppercase">
                                 {item.date || '---'}
                               </span>

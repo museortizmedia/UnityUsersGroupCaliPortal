@@ -2,28 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useEvents } from '../hooks/useEvents';
 import { useHeader } from '../context/HeaderContext';
 import { useAuth } from '../context/AuthContext';
+import { parseEventDate } from '../helpers/parseEventData';
 
 const EVENTS_PER_PAGE = 6;
-
-// Helper para parsear la fecha "DD MMM" (ej: "15 AGO") a un objeto Date
-const parseEventDate = (dateStr) => {
-  if (!dateStr) return null;
-  const MONTHS_ES = {
-    ENE: 0, FEB: 1, MAR: 2, ABR: 3, MAY: 4, JUN: 5,
-    JUL: 6, AGO: 7, SEP: 8, OCT: 9, NOV: 10, DIC: 11
-  };
-  const parts = dateStr.trim().split(' ');
-  if (parts.length < 2) return null;
-
-  const day = parseInt(parts[0], 10);
-  const monthKey = parts[1].toUpperCase();
-  const month = MONTHS_ES[monthKey];
-
-  if (isNaN(day) || month === undefined) return null;
-
-  const now = new Date();
-  return new Date(now.getFullYear(), month, day);
-};
 
 export default function EventsPage({ setActiveTab, onSelectEvent }) {
   const { isLoggedIn } = useAuth();
