@@ -44,36 +44,40 @@ export default function TagInput({ tags = [], onChange, placeholder = 'Escribe y
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap items-center gap-2 p-2 bg-white/60 border border-black/10 focus-within:border-black rounded-lg transition-colors min-h-[42px]">
+      {/* Contenedor principal con overflow-hidden para prevenir desbordamientos */}
+      <div className="w-full overflow-hidden flex flex-wrap items-center gap-2 p-2 bg-white/60 border border-black/10 focus-within:border-black rounded-lg transition-colors min-h-[42px]">
         {/* Badges renderizados */}
         {tags.map((tag, index) => (
           <span
             key={`${tag}-${index}`}
-            className="inline-flex items-center gap-1.5 bg-black text-white px-2.5 py-1 rounded font-['JetBrains_Mono'] text-xs font-medium animate-fade-in"
+            className="inline-flex items-center justify-between gap-1.5 bg-black text-white px-2.5 py-1 rounded font-['JetBrains_Mono'] text-xs font-medium animate-fade-in max-w-full"
           >
-            <span>{tag}</span>
+            {/* break-all fuerza a las URLs extremadamente largas a saltar de línea sin salirse del badge */}
+            <span className="break-all">{tag}</span>
             <button
               type="button"
               onClick={() => removeTag(index)}
-              className="hover:bg-white/20 rounded-full p-0.5 transition-colors cursor-pointer flex items-center justify-center"
+              className="hover:bg-white/20 rounded-full p-0.5 transition-colors cursor-pointer flex items-center justify-center shrink-0"
+              title="Eliminar"
             >
               <span className="material-symbols-outlined text-[14px]">close</span>
             </button>
           </span>
         ))}
 
-        {/* Input para escribir */}
+        {/* Input para escribir (ajustado para móviles con min-w-[100px] e flex-1) */}
         <input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          onBlur={() => inputValue && addTag(inputValue)} // Opcional: añade el tag al perder el foco
+          onBlur={() => inputValue && addTag(inputValue)}
           placeholder={tags.length === 0 ? placeholder : ''}
-          className="flex-1 bg-transparent border-none outline-none font-['JetBrains_Mono'] text-xs text-black min-w-[120px] py-1"
+          className="flex-1 min-w-[100px] bg-transparent border-none outline-none font-['JetBrains_Mono'] text-xs text-black py-1"
         />
       </div>
+
       <p className="font-['JetBrains_Mono'] text-[10px] text-[#45464d] mt-1">
         Presiona <kbd className="bg-black/5 px-1 py-0.5 rounded border border-black/10 font-bold">Enter</kbd> o <kbd className="bg-black/5 px-1 py-0.5 rounded border border-black/10 font-bold">,</kbd> para agregar.
       </p>
