@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useHeader } from '../context/HeaderContext';
 
 // Helper reutilizable para asegurar un ID único
@@ -8,15 +8,110 @@ export const getPackageAssetId = (pkg) => {
   return raw.toLowerCase().replace(/\s+/g, '-');
 };
 
+// Sub-componente para renderizar la miniatura (Soporta imágenes y videos directos/embeds)
+function MediaItem({
+  src,
+  alt,
+  className = '',
+  controls = false,
+  autoPlay = false,
+  isModal = false,
+}) {
+  const [isVideo, setIsVideo] = useState(false);
+
+  useEffect(() => {
+    setIsVideo(false);
+  }, [src]);
+
+  const isEmbed =
+    src.includes('youtube.com') ||
+    src.includes('youtu.be') ||
+    src.includes('vimeo.com');
+
+  const getEmbedUrl = (url = '') => {
+    if (url.includes('youtube.com/watch?v=')) {
+      return url.replace('watch?v=', 'embed/');
+    }
+    if (url.includes('youtu.be/')) {
+      const id = url.split('youtu.be/')[1]?.split('?')[0];
+      return `https://www.youtube.com/embed/${id}?autoplay=1`;
+    }
+    if (url.includes('vimeo.com/')) {
+      const id = url.split('vimeo.com/')[1]?.split('?')[0];
+      return `https://player.vimeo.com/video/${id}?autoplay=1`;
+    }
+    return url;
+  };
+
+  if (isEmbed) {
+    if (isModal) {
+      return (
+        <div className="w-full aspect-video max-h-[80vh] rounded-lg overflow-hidden shadow-2xl">
+          <iframe
+            src={getEmbedUrl(src)}
+            title="Video Embed"
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-neutral-900 to-black flex flex-col items-center justify-center text-white/90 relative group-hover:scale-105 transition-transform duration-500">
+        <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-lg group-hover:bg-emerald-500 group-hover:text-black transition-all duration-300 group-hover:scale-110">
+          <span className="material-symbols-outlined text-3xl">play_arrow</span>
+        </div>
+        <span className="text-[10px] font-['JetBrains_Mono'] tracking-widest uppercase mt-2.5 text-white/60 group-hover:text-white transition-colors">
+          Video
+        </span>
+      </div>
+    );
+  }
+
+  if (isVideo) {
+    return (
+      <video
+        src={src}
+        controls={controls}
+        autoPlay={autoPlay}
+        playsInline
+        loop
+        className={className}
+      >
+        Tu navegador no soporta la reproducción de video.
+      </video>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onError={() => setIsVideo(true)}
+      className={className}
+      loading="lazy"
+    />
+  );
+}
+
 export default function PackageDetailPage({ packageData, onBack }) {
   const { togglePin, isPinned } = useHeader();
   const [copiedId, setCopiedId] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+
+  // Controles de swipe táctil para mobile
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const scrollRef = useRef(null);
 
   if (!packageData) return null;
 
   const gitLink = packageData.gitUrl || packageData.installCmd;
   const pkgId = getPackageAssetId(packageData);
   const pinned = isPinned(pkgId);
+  const mediaList = Array.isArray(packageData.media) ? packageData.media : [];
 
   const handleCopy = (textToCopy, id) => {
     if (textToCopy) {
@@ -39,6 +134,60 @@ export default function PackageDetailPage({ packageData, onBack }) {
       tags: packageData.tags || [],
     });
   };
+
+  // Desplazamiento horizontal de la galería
+  const scrollGallery = (direction) => {
+    if (!scrollRef.current) return;
+    const scrollAmount = scrollRef.current.clientWidth * 0.75;
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
+  };
+
+  // Navegación del Modal / Lightbox
+  const handleNext = useCallback(() => {
+    if (selectedIndex === null || mediaList.length === 0) return;
+    setSelectedIndex((prev) => (prev + 1) % mediaList.length);
+  }, [selectedIndex, mediaList.length]);
+
+  const handlePrev = useCallback(() => {
+    if (selectedIndex === null || mediaList.length === 0) return;
+    setSelectedIndex((prev) => (prev - 1 + mediaList.length) % mediaList.length);
+  }, [selectedIndex, mediaList.length]);
+
+  const handleClose = useCallback(() => {
+    setSelectedIndex(null);
+  }, []);
+
+  // Atajos de teclado (Esc y flechas)
+  useEffect(() => {
+    if (selectedIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowRight') handleNext();
+      else if (e.key === 'ArrowLeft') handlePrev();
+      else if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedIndex, handleNext, handlePrev, handleClose]);
+
+  // Gestos táctiles para móviles
+  const minSwipeDistance = 50;
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance) handleNext();
+    if (distance < -minSwipeDistance) handlePrev();
+  };
+
+  const isEmbedMedia = (url = '') =>
+    url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
 
   return (
     <div className="mb-12">
@@ -92,7 +241,7 @@ export default function PackageDetailPage({ packageData, onBack }) {
             </div>
           </div>
 
-          {/* Copiar Enlace Git - Ajustado para ocupar el mismo ancho en móviles */}
+          {/* Copiar Enlace Git */}
           <div className="w-full md:w-auto shrink-0 flex flex-col items-stretch md:items-end gap-2">
             <button
               onClick={() => handleCopy(gitLink, pkgId)}
@@ -114,8 +263,90 @@ export default function PackageDetailPage({ packageData, onBack }) {
 
       {/* Detalles Principales (2 Columnas) */}
       <div className="grid grid-cols-12 gap-8">
-        {/* Documentación / Readme */}
+        {/* Documentación y Galería */}
         <div className="col-span-12 lg:col-span-8 space-y-6">
+          {/* GALERÍA MULTIMEDIA */}
+          {mediaList.length > 0 && (
+            <div className="bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6 space-y-4 select-none">
+              <div className="flex items-center justify-between">
+                <h3 className="font-['Space_Grotesk'] text-lg font-bold text-black flex items-center gap-2">
+                  <span className="material-symbols-outlined text-black/80">
+                    photo_library
+                  </span>
+                  Muestras y Capturas
+                  <span className="text-xs font-['JetBrains_Mono'] font-normal bg-black/5 px-2.5 py-0.5 rounded-full border border-black/10 text-black/60">
+                    {mediaList.length}
+                  </span>
+                </h3>
+                <span className="text-[11px] font-['JetBrains_Mono'] text-black/40 hidden sm:inline-block">
+                  Haz clic para ampliar
+                </span>
+              </div>
+
+              {/* Contenedor Galería */}
+              <div className="relative group/gallery">
+                {/* Flecha Izquierda */}
+                <div className="absolute left-0 top-0 bottom-0 z-10 w-16 bg-gradient-to-r from-white/90 via-white/40 to-transparent opacity-0 group-hover/gallery:opacity-100 transition-opacity duration-300 flex items-center justify-start pl-1 pointer-events-none rounded-l-xl">
+                  <button
+                    onClick={() => scrollGallery('left')}
+                    className="pointer-events-auto bg-black/80 hover:bg-black text-white w-9 h-9 rounded-full backdrop-blur-md border border-white/20 transition-all cursor-pointer shadow-lg transform hover:scale-110 flex items-center justify-center"
+                    title="Anterior"
+                  >
+                    <span className="material-symbols-outlined text-xl">
+                      chevron_left
+                    </span>
+                  </button>
+                </div>
+
+                {/* Lista Horizontal de Items */}
+                <div
+                  ref={scrollRef}
+                  className="flex gap-4 overflow-x-auto pb-3 pt-1 px-1 snap-x snap-mandatory no-scrollbar scroll-smooth"
+                >
+                  {mediaList.map((url, index) => (
+                    <div
+                      key={index}
+                      onClick={() => setSelectedIndex(index)}
+                      className="flex-none w-[calc(100%-1rem)] sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.67rem)] snap-start group relative aspect-video bg-neutral-900 rounded-xl overflow-hidden border border-black/10 shadow-sm hover:shadow-xl hover:border-black/30 transition-all duration-300 cursor-pointer"
+                    >
+                      <MediaItem
+                        src={url}
+                        alt={`Muestra ${index + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none"
+                      />
+
+                      {/* Tag de # arriba a la derecha */}
+                      <div className="absolute top-2.5 right-2.5 z-10 font-['JetBrains_Mono'] text-[11px] font-semibold bg-black/60 text-white/90 backdrop-blur-md px-2 py-0.5 rounded border border-white/10">
+                        #{index + 1}
+                      </div>
+
+                      {/* Icono de zoom en el centro (solo en hover) */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-white text-4xl opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100 drop-shadow-lg">
+                          zoom_in
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Flecha Derecha */}
+                <div className="absolute right-0 top-0 bottom-0 z-10 w-16 bg-gradient-to-l from-white/90 via-white/40 to-transparent opacity-0 group-hover/gallery:opacity-100 transition-opacity duration-300 flex items-center justify-end pr-1 pointer-events-none rounded-r-xl">
+                  <button
+                    onClick={() => scrollGallery('right')}
+                    className="pointer-events-auto bg-black/80 hover:bg-black text-white w-9 h-9 rounded-full backdrop-blur-md border border-white/20 transition-all cursor-pointer shadow-lg transform hover:scale-110 flex items-center justify-center"
+                    title="Siguiente"
+                  >
+                    <span className="material-symbols-outlined text-xl">
+                      chevron_right
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Documentación / Readme */}
           <div className="bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-8">
             <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black mb-4">
               Documentación e Instalación
@@ -150,7 +381,7 @@ export default function PackageDetailPage({ packageData, onBack }) {
           {/* Etiquetas */}
           {Array.isArray(packageData.tags) && packageData.tags.length > 0 && (
             <div className="bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6">
-              <h3 className="font-[#JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-3">
+              <h3 className="font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-3">
                 Etiquetas y Clasificación
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -207,6 +438,86 @@ export default function PackageDetailPage({ packageData, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* LIGHTBOX / MODAL PARA AMPLIAR */}
+      {selectedIndex !== null && mediaList[selectedIndex] && (
+        <div
+          onClick={handleClose}
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-between p-4 md:p-6 select-none animate-fadeIn"
+        >
+          {/* Header del Modal */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-6xl flex items-center justify-between text-white z-30 py-2 px-4 rounded-full bg-white/5 border border-white/10 backdrop-blur-md"
+          >
+            <div className="flex items-center gap-3">
+              <span className="font-['JetBrains_Mono'] text-xs font-semibold bg-emerald-500 text-black px-2.5 py-1 rounded">
+                {selectedIndex + 1} / {mediaList.length}
+              </span>
+              <span className="font-['JetBrains_Mono'] text-xs text-white/70 hidden sm:inline-block">
+                {isEmbedMedia(mediaList[selectedIndex]) ? 'Video Interactivo' : 'Vista Ampliada'}
+              </span>
+            </div>
+
+            <button
+              onClick={handleClose}
+              className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-full transition-all cursor-pointer font-['JetBrains_Mono'] text-xs flex items-center gap-1 border border-transparent hover:border-white/20"
+              title="Cerrar (Esc)"
+            >
+              <span>Cerrar</span>
+              <span className="material-symbols-outlined text-lg">close</span>
+            </button>
+          </div>
+
+          {/* Visualizador Principal */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            className="relative w-full max-w-6xl flex-1 flex items-center justify-center my-4"
+          >
+            {/* Flecha Anterior */}
+            {mediaList.length > 1 && (
+              <button
+                onClick={handlePrev}
+                className="hidden sm:flex absolute left-2 md:left-4 z-30 text-white/80 hover:text-white bg-black/60 hover:bg-black/90 p-3 rounded-full backdrop-blur-md border border-white/10 transition-all cursor-pointer shadow-2xl hover:scale-110"
+                title="Anterior (Flecha Izquierda)"
+              >
+                <span className="material-symbols-outlined text-3xl">chevron_left</span>
+              </button>
+            )}
+
+            {/* Contenido Ampliado */}
+            <div className="w-full h-full flex items-center justify-center max-h-[82vh]">
+              <MediaItem
+                src={mediaList[selectedIndex]}
+                alt={`Ampliada ${selectedIndex + 1}`}
+                controls={true}
+                autoPlay={true}
+                isModal={true}
+                className="max-h-[82vh] w-auto max-w-full object-contain rounded-xl shadow-2xl border border-white/10"
+              />
+            </div>
+
+            {/* Flecha Siguiente */}
+            {mediaList.length > 1 && (
+              <button
+                onClick={handleNext}
+                className="hidden sm:flex absolute right-2 md:right-4 z-30 text-white/80 hover:text-white bg-black/60 hover:bg-black/90 p-3 rounded-full backdrop-blur-md border border-white/10 transition-all cursor-pointer shadow-2xl hover:scale-110"
+                title="Siguiente (Flecha Derecha)"
+              >
+                <span className="material-symbols-outlined text-3xl">chevron_right</span>
+              </button>
+            )}
+          </div>
+
+          {/* Footer Modal */}
+          <div className="text-white/40 font-['JetBrains_Mono'] text-[11px] tracking-wide pb-1">
+            Navega con las flechas <span className="text-white/70">←</span> <span className="text-white/70">→</span> o deslizamiento táctil
+          </div>
+        </div>
+      )}
     </div>
   );
 }

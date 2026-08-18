@@ -19,6 +19,7 @@ const EMPTY_PROJECT_FORM = {
   tags: [],
   technologies: [],
   coverImage: '',
+  media: [],
   downloadUrl: '',
   githubUrl: '',
   badge: '',
@@ -28,18 +29,15 @@ const EMPTY_PROJECT_FORM = {
 export default function ProjectUploadPage() {
   const { githubToken } = useAuth();
 
-  // Estados de datos de GitHub
   const [fullJsonData, setFullJsonData] = useState([]);
   const [rawJsonText, setRawJsonText] = useState('[]');
   const [isRawEditing, setIsRawEditing] = useState(false);
   const [jsonError, setJsonError] = useState('');
   const [openAccordionId, setOpenAccordionId] = useState(null);
 
-  // Estado del formulario (Creación / Edición)
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState(EMPTY_PROJECT_FORM);
 
-  // Estados de interfaz
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
@@ -47,7 +45,6 @@ export default function ProjectUploadPage() {
   const statuses = ['Prototipo', 'Demo', 'En Desarrollo', 'Publicado', 'Archivado'];
   const licenses = ['MIT', 'Apache-2.0', 'GPL-3.0', 'CC-BY-4.0', 'Propietaria'];
 
-  // 1. Cargar proyectos desde GitHub al montar
   useEffect(() => {
     const loadProjects = async () => {
       setIsLoading(true);
@@ -75,7 +72,6 @@ export default function ProjectUploadPage() {
     loadProjects();
   }, [githubToken]);
 
-  // Manejar cambios en campos tradicionales
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -84,7 +80,6 @@ export default function ProjectUploadPage() {
     }));
   };
 
-  // Manejador específico para arreglos (tags / tecnologías)
   const handleArrayChange = (field, newArray) => {
     setFormData((prev) => ({
       ...prev,
@@ -92,7 +87,6 @@ export default function ProjectUploadPage() {
     }));
   };
 
-  // Cargar proyecto para edición
   const handleEditProject = (item) => {
     setEditingId(item.id);
 
@@ -108,6 +102,7 @@ export default function ProjectUploadPage() {
       tags: Array.isArray(item.tags) ? item.tags : [],
       technologies: Array.isArray(item.technologies) ? item.technologies : [],
       coverImage: item.coverImage || '',
+      media: Array.isArray(item.media) ? item.media : [], // <-- Carga de arreglos guardados
       downloadUrl: item.downloadUrl || '',
       githubUrl: item.githubUrl || '',
       badge: item.badge || '',
@@ -116,14 +111,12 @@ export default function ProjectUploadPage() {
     setStatusMsg({ type: 'info', text: `Editando el proyecto: ${item.title}` });
   };
 
-  // Cancelar Edición
   const handleCancelEdit = () => {
     setEditingId(null);
     setFormData(EMPTY_PROJECT_FORM);
     setStatusMsg({ type: '', text: '' });
   };
 
-  // Guardar (Crear o Actualizar) en estado local
   const handleSaveProject = (e) => {
     e.preventDefault();
     if (!formData.title) return;
@@ -143,6 +136,7 @@ export default function ProjectUploadPage() {
       tags: formData.tags,
       technologies: formData.technologies,
       coverImage: formData.coverImage || '',
+      media: formData.media, // <-- Inclusión en el payload JSON
       downloadUrl: formData.downloadUrl || '',
       githubUrl: formData.githubUrl || '',
       badge: formData.badge || '',
@@ -164,7 +158,6 @@ export default function ProjectUploadPage() {
     handleCancelEdit();
   };
 
-  // Manejador del Editor JSON Crudo
   const handleRawJsonChange = (e) => {
     const val = e.target.value;
     setRawJsonText(val);
@@ -182,7 +175,6 @@ export default function ProjectUploadPage() {
     }
   };
 
-  // Eliminar proyecto
   const handleDeleteProject = (id) => {
     const updatedList = fullJsonData.filter((item) => item.id !== id);
     setFullJsonData(updatedList);
@@ -190,7 +182,6 @@ export default function ProjectUploadPage() {
     if (editingId === id) handleCancelEdit();
   };
 
-  // Commit a GitHub
   const handleExecuteCommit = async () => {
     setIsSubmitting(true);
     setStatusMsg({ type: '', text: '' });
@@ -301,7 +292,7 @@ export default function ProjectUploadPage() {
         </div>
       ) : (
         <div className="grid grid-cols-12 gap-8 mb-16">
-          {/* Formulario Fijo (Creación/Edición) - Columna Izquierda */}
+          {/* Formulario Izquierda */}
           <div className="col-span-12 lg:col-span-6 bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6 md:p-8 flex flex-col justify-between space-y-6">
             <div className="flex items-center justify-between border-b border-black/10 pb-3">
               <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black flex items-center gap-2">
@@ -464,7 +455,7 @@ export default function ProjectUploadPage() {
                 </div>
               </div>
 
-              {/* URLs y Media */}
+              {/* Cover Image y Badge */}
               <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-12 sm:col-span-6">
                   <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
@@ -492,6 +483,18 @@ export default function ProjectUploadPage() {
                     className="w-full bg-white/60 border border-black/10 focus:border-black rounded px-3 py-2 font-['Inter'] text-xs text-black outline-none"
                   />
                 </div>
+              </div>
+
+              {/* Entrada Dinámica para Multimedia (Media Array) */}
+              <div>
+                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                  Galería Multimedia (URLs de Imágenes o Videos)
+                </label>
+                <TagInput
+                  tags={formData.media}
+                  onChange={(newMedia) => handleArrayChange('media', newMedia)}
+                  placeholder="Añade URL (https://...) y presiona Enter"
+                />
               </div>
 
               <div className="grid grid-cols-12 gap-4">
@@ -643,7 +646,7 @@ export default function ProjectUploadPage() {
                           </div>
                         </div>
 
-                        {/* Contenido Expandible del Acordeón */}
+                        {/* Contenido Expandible */}
                         {isOpen && (
                           <div className="px-4 pb-4 pt-2 border-t border-black/5 font-['Inter'] text-xs text-[#45464d] space-y-2 bg-white/30">
                             <p className="leading-relaxed"><strong>Descripción:</strong> {item.description || 'Sin descripción.'}</p>
@@ -671,6 +674,26 @@ export default function ProjectUploadPage() {
                                     {tech}
                                   </span>
                                 ))}
+                              </div>
+                            )}
+
+                            {/* Vista de Arreglo Multimedia */}
+                            {item.media && item.media.length > 0 && (
+                              <div className="pt-2 border-t border-black/5">
+                                <p className="font-bold text-black mb-1">Multimedia ({item.media.length}):</p>
+                                <div className="flex flex-col gap-1">
+                                  {item.media.map((url, idx) => (
+                                    <a
+                                      key={idx}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="font-['JetBrains_Mono'] text-[10px] text-blue-600 hover:underline truncate block"
+                                    >
+                                      • {url}
+                                    </a>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>

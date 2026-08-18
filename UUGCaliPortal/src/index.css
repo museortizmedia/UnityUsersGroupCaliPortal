@@ -22,3 +22,12 @@
   --color-surface-container-lowest: #ffffff;
   --color-outline-variant: #c6c6cd;
 }
+
+/* Ocultar barra de scroll en Firefox, IE/Edge y Chrome/Safari */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE y Edge */
+  scrollbar-width: none;  /* Firefox */
+}

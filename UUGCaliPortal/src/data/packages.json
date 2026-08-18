@@ -8,8 +8,14 @@
     "category": "Herramientas y Utilidades",
     "version": "v1.0.2",
     "downloads": "0",
-    "lastUpdated": "Hace un momento",
+    "lastUpdated": "18/08/2026",
     "gitUrl": "https://github.com/museortizmedia/FolioDevSuite.git",
+    "media": [
+      "https://media.licdn.com/dms/image/v2/D4E22AQEDM-PUSk8dUw/feedshare-shrink_800/B4EZ_PzpWVHwAc-/0/1785897850570?e=1788393600&v=beta&t=E-K_e2eETa_Qzv_wYg3XxozaLYDhTxa99qhFrCGkAGQ",
+      "https://media.licdn.com/dms/image/v2/D4D22AQE-1zBDytTSrQ/feedshare-shrink_1280/B4DZ.n52JYHQAU-/0/1785228387314?e=1788393600&v=beta&t=MEYUEoZZl8d74sJmFgk9LhO8EiXyapJ6gygU6gXayO0",
+      "https://media.licdn.com/dms/image/v2/D4D22AQFLO8y256dQRA/feedshare-image-high-res/B4DZ.n52GIKwAU-/0/1785228387171?e=1788393600&v=beta&t=B5MzhBIRN5tn36uWm8dgrhZV16lwCqoGZjKrhIkILb0",
+      "https://dms.licdn.com/playlist/vid/v2/D4E05AQGx0WAfZO6X3A/mp4-720p-30fp-crf28/B4EZrik3iaHECI-/0/1764737921857?e=2147483647&v=beta&t=yF-2TpHwHgF720OMtorPtDpan4t94L2xGlrYLoi534s"
+    ],
     "unityVersion": "6000.0 +",
     "author": "Diego Ortiz",
     "tags": [

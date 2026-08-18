@@ -16,7 +16,8 @@ const EMPTY_FORM = {
   gitUrl: '',
   unityVersion: '2022.3 LTS+',
   author: '',
-  tags: [], // <-- Manejado como Array
+  tags: [], // Manejado como Array
+  media: [], // <-- Añadido soporte para Galería Multimedia
   readme: '',
   isOfficial: false,
   icon: 'extension',
@@ -96,11 +97,11 @@ export default function PackageUploadPage() {
     });
   };
 
-  // Manejador específico para el componente TagInput
-  const handleTagsChange = (newTags) => {
+  // Manejador genérico para arrays (tags, media) mediante TagInput
+  const handleArrayChange = (field, newArray) => {
     setFormData((prev) => ({
       ...prev,
-      tags: newTags
+      [field]: newArray
     }));
   };
 
@@ -126,6 +127,7 @@ export default function PackageUploadPage() {
       unityVersion: item.unityVersion || '2022.3 LTS+',
       author: item.author || '',
       tags: tagsArray,
+      media: Array.isArray(item.media) ? item.media : [], // <-- Carga de arreglo media
       readme: item.readme || '',
       isOfficial: item.isOfficial || false,
       icon: item.icon || 'extension',
@@ -163,6 +165,7 @@ export default function PackageUploadPage() {
       unityVersion: formData.unityVersion || '2022.3 LTS+',
       author: formData.author || 'Comunidad',
       tags: formData.tags.length > 0 ? formData.tags : ['Unity'],
+      media: formData.media, // <-- Inclusión en el payload JSON
       readme: formData.readme || ''
     };
 
@@ -468,15 +471,27 @@ export default function PackageUploadPage() {
                 ></textarea>
               </div>
 
-              {/* Integración del Componente TagInput */}
+              {/* Integración del Componente TagInput para Etiquetas */}
               <div>
                 <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
                   Etiquetas
                 </label>
                 <TagInput
                   tags={formData.tags}
-                  onChange={handleTagsChange}
+                  onChange={(newTags) => handleArrayChange('tags', newTags)}
                   placeholder="Escribe tag y presiona Enter..."
+                />
+              </div>
+
+              {/* Entrada Dinámica para Multimedia (Media Array) */}
+              <div>
+                <label className="block font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-1">
+                  Galería Multimedia (URLs de Imágenes o Videos)
+                </label>
+                <TagInput
+                  tags={formData.media}
+                  onChange={(newMedia) => handleArrayChange('media', newMedia)}
+                  placeholder="Añade URL (https://...) y presiona Enter"
                 />
               </div>
 
@@ -486,7 +501,7 @@ export default function PackageUploadPage() {
                 </label>
                 <textarea
                   name="readme"
-                  rows={20}
+                  rows={15}
                   placeholder="Instrucciones o notas adicionales..."
                   value={formData.readme}
                   onChange={handleInputChange}
@@ -540,7 +555,7 @@ export default function PackageUploadPage() {
             </div>
 
             {!isRawEditing ? (
-              <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[750px] overflow-y-auto pr-1">
                 {fullJsonData.length === 0 ? (
                   <div className="bg-white/30 border border-dashed border-black/20 rounded-xl p-8 text-center text-[#45464d] font-['Inter'] text-sm">
                     No hay paquetes cargados.
@@ -620,6 +635,8 @@ export default function PackageUploadPage() {
                             <p className="leading-relaxed"><strong>Descripción:</strong> {item.description}</p>
                             <p><strong>Git URL:</strong> <code className="font-['JetBrains_Mono'] text-black">{item.gitUrl}</code></p>
                             <p><strong>Autor:</strong> {item.author || 'N/A'} | <strong>Unity:</strong> {item.unityVersion}</p>
+
+                            {/* Tags */}
                             {item.tags && item.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 pt-1">
                                 {item.tags.map((tag, idx) => (
@@ -627,6 +644,26 @@ export default function PackageUploadPage() {
                                     {tag}
                                   </span>
                                 ))}
+                              </div>
+                            )}
+
+                            {/* Vista de Arreglo Multimedia */}
+                            {item.media && item.media.length > 0 && (
+                              <div className="pt-2 border-t border-black/5">
+                                <p className="font-bold text-black mb-1">Multimedia ({item.media.length}):</p>
+                                <div className="flex flex-col gap-1">
+                                  {item.media.map((url, idx) => (
+                                    <a
+                                      key={idx}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="font-['JetBrains_Mono'] text-[10px] text-blue-600 hover:underline truncate block"
+                                    >
+                                      • {url}
+                                    </a>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -650,7 +687,7 @@ export default function PackageUploadPage() {
                 <textarea
                   value={rawJsonText}
                   onChange={handleRawJsonChange}
-                  rows={22}
+                  rows={24}
                   className="w-full bg-transparent text-emerald-400 font-['JetBrains_Mono'] text-xs outline-none resize-none leading-relaxed"
                 ></textarea>
                 {jsonError && (
