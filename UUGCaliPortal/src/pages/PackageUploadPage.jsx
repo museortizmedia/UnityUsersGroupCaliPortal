@@ -144,6 +144,16 @@ export default function PackageUploadPage() {
     setStatusMsg({ type: '', text: '' });
   };
 
+  // Fecha en formato ISO (YYYY-MM-DD)
+const todayDate = new Date().toISOString().split('T')[0];
+
+// O fecha formateada en español (ej. "19 ago 2026")
+const formattedDate = new Date().toLocaleDateString('es-CO', {
+  day: '2-digit',
+  month: 'short',
+  year: 'numeric',
+});
+
   // Guardar (Crear o Actualizar) en estado local
   const handleSavePackage = (e) => {
     e.preventDefault();
@@ -161,12 +171,12 @@ export default function PackageUploadPage() {
       category: formData.category,
       version: formData.version || 'v1.0.0',
       downloads: formData.downloads || '0',
-      lastUpdated: 'Hace un momento',
+      lastUpdated: currentDate,
       gitUrl: formData.gitUrl,
       unityVersion: formData.unityVersion || '2022.3 LTS+',
       author: formData.author || 'Comunidad',
       tags: formData.tags.length > 0 ? formData.tags : ['Unity'],
-      media: formData.media, // <-- Inclusión en el payload JSON
+      media: formData.media,
       readme: formData.readme || ''
     };
 

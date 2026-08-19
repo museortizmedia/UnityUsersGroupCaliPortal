@@ -214,6 +214,50 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
   const isEmbedMedia = (url = '') =>
     url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
 
+  // Convierte una cadena de fecha o Date en un texto dinámico/humano
+  export const formatLastUpdated = (dateString) => {
+    if (!dateString) return 'Reciente';
+
+    // Si ya viene escrito explícitamente "Hace..." o "Reciente" desde el backend
+    if (typeof dateString === 'string' && (dateString.toLowerCase().includes('hace') || dateString === 'Reciente')) {
+      return dateString;
+    }
+
+    const date = new Date(dateString);
+    // Si la fecha no es válida, devolvemos el valor original
+    if (isNaN(date.getTime())) return dateString;
+
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    // Lógica de rangos
+    if (diffInSeconds < 60) {
+      return 'Hace un momento';
+    }
+    if (diffInMinutes < 60) {
+      return `Hace ${diffInMinutes} min${diffInMinutes > 1 ? 's' : ''}`;
+    }
+    if (diffInHours < 24) {
+      return `Hace ${diffInHours} hr${diffInHours > 1 ? 's' : ''}`;
+    }
+    if (diffInDays === 1) {
+      return 'Ayer';
+    }
+    if (diffInDays < 7) {
+      return `Hace ${diffInDays} días`;
+    }
+
+    // Si pasaron más de 7 días, mostrar fecha formateada (ej. "12 ago 2026")
+    return date.toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
   return (
     <div className="mb-12">
       {/* Botón Volver */}
@@ -248,11 +292,10 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
                 {/* Botón Guardar / Marcador */}
                 <button
                   onClick={handleTogglePin}
-                  className={`p-1.5 rounded-full backdrop-blur transition-all flex items-center justify-center border ${
-                    pinned
+                  className={`p-1.5 rounded-full backdrop-blur transition-all flex items-center justify-center border ${pinned
                       ? 'bg-amber-400 border-amber-500 text-black shadow-sm'
                       : 'bg-black/5 border-black/10 text-[#45464d] hover:text-black hover:bg-black/10'
-                  }`}
+                    }`}
                   title={pinned ? 'Quitar de guardados' : 'Guardar en mi librería'}
                 >
                   <span className="material-symbols-outlined text-lg leading-none">
@@ -450,7 +493,7 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
             <div className="flex justify-between items-center py-1">
               <span className="text-[#45464d]">Última Actualización</span>
               <span className="text-black font-bold">
-                {activePackage.lastUpdated || 'Reciente'}
+                {formatLastUpdated(activePackage.lastUpdated)}
               </span>
             </div>
 
