@@ -1,5 +1,27 @@
 [
   {
+    "id": "muse-ortiz-library",
+    "name": "Muse Ortiz Library",
+    "description": "Pensado en el paradigma de Programación Orientada a Componentes de Unity. Esta librería reúne varios scripts en categorias como componentes, controladores y managers para agilizar los procesos desde el prototipado, hasta el demo y el despliegue final de un proyecto en unity.",
+    "isOfficial": false,
+    "icon": "book",
+    "category": "Scripting",
+    "version": "v1.0.0",
+    "downloads": "0",
+    "lastUpdated": "Hace un momento",
+    "gitUrl": "https://github.com/museortizmedia/MuseOrtizLibrary.git",
+    "unityVersion": "2006.0 LTS+",
+    "author": "Diego Ortiz (Muse Coder)",
+    "tags": [
+      "POC",
+      "Scripting",
+      "Script",
+      "Libreria"
+    ],
+    "media": [],
+    "readme": "Características:\n\n* La librería continene componetes para agregar rápidamente funcionalidades\n* Controladores de personaje y mecánicas interactivas.\n* Managers: singleton simple, maquinas de estado y modelo de multimanagers.\n* Visual Editor Scripting (VES): Permite aplicar lógica por medio de scripts en el editor: condiciones, transformaciones de variables.\n* Tools: Herramientas diseñadas para el dia a dia: normalizador de audio, creador de sprites ingame, captura de imágenes ingame.\n* Value Scripting Objects: Almacena y modifica datos persistenetes en scriptable objets."
+  },
+  {
     "id": "folio-devsuite",
     "name": "Folio: DevSuite",
     "description": "DevSuite profesional para desarrolladores indie.",
