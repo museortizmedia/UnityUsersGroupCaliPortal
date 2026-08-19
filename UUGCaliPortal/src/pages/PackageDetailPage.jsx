@@ -3,6 +3,7 @@ import { useHeader } from '../context/HeaderContext';
 
 // Helper reutilizable para asegurar un ID único
 export const getPackageAssetId = (pkg) => {
+  if (!pkg) return '';
   if (pkg.id) return pkg.id;
   const raw = pkg.name || pkg.title || 'paquete';
   return raw.toLowerCase().replace(/\s+/g, '-');
@@ -22,6 +23,8 @@ function MediaItem({
   useEffect(() => {
     setIsVideo(false);
   }, [src]);
+
+  if (!src) return null;
 
   const isEmbed =
     src.includes('youtube.com') ||
@@ -96,12 +99,10 @@ function MediaItem({
 }
 
 export default function PackageDetailPage({ packageData, onBack, packagesList = [] }) {
-
+  // Resolvemos el paquete activo: soporta tanto si recibe el objeto completo como si recibe un string ID/Nombre
   const activePackage = typeof packageData === 'string'
     ? packagesList.find(p => p.id === packageData || p.name === packageData)
     : packageData;
-  
-    if (!activePackage) { return <div>Cargando paquete...</div>; }
 
   const { togglePin, isPinned } = useHeader();
   const [copiedId, setCopiedId] = useState(null);
@@ -113,12 +114,28 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
 
   const scrollRef = useRef(null);
 
-  if (!packageData) return null;
+  // Si después de buscar no se encuentra el paquete en la lista
+  if (!activePackage) {
+    return (
+      <div className="p-8 text-center bg-white/40 backdrop-blur-md border border-black/5 rounded-xl my-8">
+        <p className="font-['JetBrains_Mono'] text-sm text-[#45464d] mb-4">
+          No se pudo encontrar la información del paquete solicitado.
+        </p>
+        <button
+          onClick={onBack}
+          className="bg-black text-white px-4 py-2 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-wider cursor-pointer"
+        >
+          Volver al Catálogo
+        </button>
+      </div>
+    );
+  }
 
-  const gitLink = packageData.gitUrl || packageData.installCmd;
-  const pkgId = getPackageAssetId(packageData);
+  // Extraemos variables directamente de activePackage
+  const gitLink = activePackage.gitUrl || activePackage.installCmd;
+  const pkgId = getPackageAssetId(activePackage);
   const pinned = isPinned(pkgId);
-  const mediaList = Array.isArray(packageData.media) ? packageData.media : [];
+  const mediaList = Array.isArray(activePackage.media) ? activePackage.media : [];
 
   const handleCopy = (textToCopy, id) => {
     if (textToCopy) {
@@ -132,13 +149,13 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
     e.stopPropagation();
     togglePin({
       id: pkgId,
-      title: packageData.name || packageData.title,
-      name: packageData.name || packageData.title,
-      type: packageData.type || 'Paquete UPM',
-      category: packageData.category || 'Paquetes',
-      version: packageData.version || 'v1.0.0',
-      description: packageData.description || '',
-      tags: packageData.tags || [],
+      title: activePackage.name || activePackage.title,
+      name: activePackage.name || activePackage.title,
+      type: activePackage.type || 'Paquete UPM',
+      category: activePackage.category || 'Paquetes',
+      version: activePackage.version || 'v1.0.0',
+      description: activePackage.description || '',
+      tags: activePackage.tags || [],
     });
   };
 
@@ -213,15 +230,15 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
           <div className="flex items-start space-x-5">
             <div className="w-16 h-16 rounded-lg bg-black text-white flex items-center justify-center shrink-0 border border-black/10">
               <span className="material-symbols-outlined text-3xl">
-                {packageData.icon || 'extension'}
+                {activePackage.icon || 'extension'}
               </span>
             </div>
             <div>
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <h1 className="font-['Space_Grotesk'] text-3xl font-bold text-black tracking-tight">
-                  {packageData.name}
+                  {activePackage.name}
                 </h1>
-                {packageData.isOfficial && (
+                {activePackage.isOfficial && (
                   <span className="bg-black/5 text-black text-[10px] font-['JetBrains_Mono'] uppercase tracking-wider px-2.5 py-1 rounded border border-black/10 font-bold">
                     Verificado UUG
                   </span>
@@ -243,7 +260,7 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
                 </button>
               </div>
               <p className="font-['Inter'] text-base text-[#45464d] max-w-2xl">
-                {packageData.description}
+                {activePackage.description}
               </p>
             </div>
           </div>
@@ -360,7 +377,7 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
             </h2>
             <div className="font-['Inter'] text-sm text-[#45464d] leading-relaxed space-y-4">
               <div className="font-['Inter'] text-sm text-[#45464d] leading-relaxed whitespace-pre-line">
-                {packageData.readme ||
+                {activePackage.readme ||
                   'Este paquete incluye recursos y módulos optimizados para flujos de trabajo en Unity.\nVerifica que la versión de tu Editor sea compatible antes de la instalación.'}
               </div>
 
@@ -386,13 +403,13 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
           </div>
 
           {/* Etiquetas */}
-          {Array.isArray(packageData.tags) && packageData.tags.length > 0 && (
+          {Array.isArray(activePackage.tags) && activePackage.tags.length > 0 && (
             <div className="bg-white/40 backdrop-blur-md border border-black/5 rounded-xl p-6">
               <h3 className="font-['JetBrains_Mono'] text-xs uppercase tracking-wider text-black font-bold mb-3">
                 Etiquetas y Clasificación
               </h3>
               <div className="flex flex-wrap gap-2">
-                {packageData.tags.map((tag) => (
+                {activePackage.tags.map((tag) => (
                   <span
                     key={tag}
                     className="bg-white/60 text-[#45464d] border border-black/10 px-3 py-1 rounded text-xs font-['JetBrains_Mono']"
@@ -414,32 +431,32 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
 
             <div className="flex justify-between items-center py-1">
               <span className="text-[#45464d]">Versión</span>
-              <span className="text-black font-bold">{packageData.version || 'v1.0.0'}</span>
+              <span className="text-black font-bold">{activePackage.version || 'v1.0.0'}</span>
             </div>
 
             <div className="flex justify-between items-center py-1">
               <span className="text-[#45464d]">Categoría</span>
-              <span className="text-black font-bold">{packageData.category || 'General'}</span>
+              <span className="text-black font-bold">{activePackage.category || 'General'}</span>
             </div>
 
             <div className="flex justify-between items-center py-1">
               <span className="text-[#45464d]">Compatibilidad Unity</span>
               <span className="text-black font-bold">
-                {packageData.unityVersion || '2021.3 LTS+'}
+                {activePackage.unityVersion || '2021.3 LTS+'}
               </span>
             </div>
 
             <div className="flex justify-between items-center py-1">
               <span className="text-[#45464d]">Última Actualización</span>
               <span className="text-black font-bold">
-                {packageData.lastUpdated || 'Reciente'}
+                {activePackage.lastUpdated || 'Reciente'}
               </span>
             </div>
 
-            {packageData.author && (
+            {activePackage.author && (
               <div className="flex justify-between items-center py-1">
                 <span className="text-[#45464d]">Autor</span>
-                <span className="text-black font-bold">{packageData.author}</span>
+                <span className="text-black font-bold">{activePackage.author}</span>
               </div>
             )}
           </div>
