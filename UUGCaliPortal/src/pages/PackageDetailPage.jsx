@@ -215,7 +215,7 @@ export default function PackageDetailPage({ packageData, onBack, packagesList = 
     url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
 
   // Convierte una cadena de fecha o Date en un texto dinámico/humano
-  export const formatLastUpdated = (dateString) => {
+  const formatLastUpdated = (dateString) => {
     if (!dateString) return 'Reciente';
 
     // Si ya viene escrito explícitamente "Hace..." o "Reciente" desde el backend
