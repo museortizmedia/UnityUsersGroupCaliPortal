@@ -49,7 +49,8 @@ export default function PackageUploadPage() {
     'Herramientas y Utilidades',
     'Modelos 3D y Entornos',
     'Audio y Sonido',
-    'IU y Sistemas'
+    'IU y Sistemas',
+    'Scripting',
   ];
 
   // 1. Cargar paquetes desde GitHub al montar

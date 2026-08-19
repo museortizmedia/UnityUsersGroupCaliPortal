@@ -327,7 +327,7 @@ export default function CommunityNetworkPage() {
                                     Todos los Colaboradores Principales
                                 </h3>
                                 <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-1">
-                                    Directorio completo del equipo desde /src/data/members.json
+                                    Directorio completo del equipo.
                                 </p>
                             </div>
                             <button
