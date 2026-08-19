@@ -94,6 +94,7 @@ function MediaItem({
       onError={() => setIsVideo(true)}
       className={className}
       loading="lazy"
+      draggable={false}
     />
   );
 }

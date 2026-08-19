@@ -262,6 +262,7 @@ function AppContent() {
           <ProjectViewPage
             projectId={selectedProjectId}
             setActiveTab={setActiveTab}
+            packagesList={packeagesDataInfo}
           />
         );
 

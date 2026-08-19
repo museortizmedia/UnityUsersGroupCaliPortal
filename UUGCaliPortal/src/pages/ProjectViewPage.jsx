@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import projectsDataInfo from '../data/projects.json';
 
+const normalize = (str = '') =>
+  str.toLowerCase().replace(/[^a-z0-9]/g, '');
+
 // Sub-componente híbrido: Soporta Imágenes, Videos directos y Embeds (YouTube/Vimeo)
 function MediaItem({
   src,
@@ -84,6 +87,7 @@ function MediaItem({
       onError={() => setIsVideo(true)}
       className={className}
       loading="lazy"
+      draggable={false}
     />
   );
 }
@@ -92,6 +96,7 @@ export default function ProjectViewPage({
   projectId,
   setActiveTab,
   projectsData = projectsDataInfo,
+  packagesList = [],
 }) {
   const project =
     projectsData.find((p) => p.id === projectId) || projectsData[0] || {};
@@ -182,6 +187,24 @@ export default function ProjectViewPage({
 
   const isEmbedMedia = (url = '') =>
     url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com');
+
+  // Función para encontrar un paquete por ID exacto, Nombre exacto o coincidencia normalizada
+  const findMatchingPackage = (techName) => {
+    if (!techName || !packagesList.length) return null;
+
+    return packagesList.find((pkg) => {
+      const matchId = pkg.id && pkg.id.toLowerCase() === techName.toLowerCase();
+      const matchName = pkg.name && pkg.name.toLowerCase() === techName.toLowerCase();
+      const matchNormalized =
+        normalize(pkg.id) === normalize(techName) ||
+        normalize(pkg.name) === normalize(techName);
+
+      return matchId || matchName || matchNormalized;
+    });
+  };
+  const handleTechClick = (pkg) => {
+    setActiveTab('package', pkg);
+  };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6">
@@ -363,15 +386,38 @@ export default function ProjectViewPage({
                   <h3 className="font-['Space_Grotesk'] text-lg font-bold mb-3 text-black">
                     Arquitectura y Tecnologías
                   </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {project.technologies.map((tech) => (
-                      <span
-                        key={tech}
-                        className="bg-black/5 border border-black/10 px-3 py-1.5 rounded-lg font-['JetBrains_Mono'] text-xs text-black"
-                      >
-                        {tech}
-                      </span>
-                    ))}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {project.technologies.map((tech) => {
+                      const matchedPkg = findMatchingPackage(tech);
+
+                      if (matchedPkg) {
+                        return (
+                          <button
+                            key={tech}
+                            onClick={() => handleTechClick(matchedPkg)}
+                            title={`Ver paquete UPM: ${matchedPkg.name}`}
+                            className="inline-flex items-center gap-1.5 bg-black hover:bg-emerald-500 text-white hover:text-black border border-black px-3 py-1.5 rounded-lg font-['JetBrains_Mono'] text-xs font-medium transition-all duration-200 cursor-pointer shadow-sm group"
+                          >
+                            <span className="material-symbols-outlined text-[15px] leading-none text-emerald-400 group-hover:text-black transition-colors">
+                              extension
+                            </span>
+                            <span>{tech}</span>
+                            <span className="material-symbols-outlined text-[13px] leading-none opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">
+                              arrow_outward
+                            </span>
+                          </button>
+                        );
+                      }
+
+                      return (
+                        <span
+                          key={tech}
+                          className="inline-flex items-center bg-black/5 border border-black/10 px-3 py-1.5 rounded-lg font-['JetBrains_Mono'] text-xs text-black font-medium"
+                        >
+                          {tech}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               )}
