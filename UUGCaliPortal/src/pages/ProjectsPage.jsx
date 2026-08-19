@@ -26,7 +26,7 @@ export default function ProjectsPage({
       setSelectedProjectId(projectId);
     }
     if (setActiveTab) {
-      setActiveTab('project-detail');
+      setActiveTab('project', projectId);
     }
   };
 

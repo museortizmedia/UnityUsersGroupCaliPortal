@@ -29,7 +29,11 @@ import PackageDetailPage from './pages/PackageDetailPage';
 
 import MyLibraryPage from './pages/MyLibraryPage';
 
-// 1. Mapeo entre URLs en el Hash y Vistas
+
+import projectsDataInfo from './data/projects.json';
+import packeagesDataInfo from './data/packages.json'
+
+// Mapeo entre URLs base del Hash y vistas internas
 const ROUTE_MAP = {
   '/': 'main',
   '/login': 'login',
@@ -48,7 +52,7 @@ const ROUTE_MAP = {
 
   '/projects': 'projects',
   '/update-project': 'update-project',
-  '/project': 'project-detail',
+  '/project': 'project',
 
   '/packages': 'packages',
   '/package-upload': 'package-upload',
@@ -61,7 +65,7 @@ const TAB_TO_PATH = Object.fromEntries(
   Object.entries(ROUTE_MAP).map(([path, tab]) => [tab, path])
 );
 
-// 2. Diccionario Centralizado de Configuración para el Header
+// Configuración centralizada para el Header
 const PAGE_HEADER_CONFIG = {
   main: { showLogo: true, showSearch: false, category: 'Engine' },
   login: { showLogo: true, showSearch: false, category: 'Engine' },
@@ -80,7 +84,7 @@ const PAGE_HEADER_CONFIG = {
 
   projects: { showLogo: true, showSearch: true, category: '' },
   'update-project': { showLogo: true, showSearch: false, category: 'Projects' },
-  'project-detail': { showLogo: true, showSearch: false, category: 'Projects' },
+  project: { showLogo: true, showSearch: false, category: 'Projects' },
 
   packages: { showLogo: true, showSearch: true, category: '' },
   'package-upload': { showLogo: true, showSearch: false, category: 'Packages' },
@@ -89,16 +93,27 @@ const PAGE_HEADER_CONFIG = {
   library: { showLogo: true, showSearch: true, category: '' },
 };
 
-// Helper para extraer la ruta limpia desde el hash
-const getHashPath = () => {
+// Helper dinámico para descomponer el hash en { path, tab, id }
+const parseHash = () => {
   const hash = window.location.hash.replace(/^#/, '');
-  return hash || '/';
+  const cleanPath = hash.startsWith('/') ? hash : `/${hash}`;
+  const segments = cleanPath.split('/').filter(Boolean);
+
+  if (segments.length === 0) {
+    return { path: '/', tab: 'main', id: null };
+  }
+
+  const rootPath = `/${segments[0]}`;
+  const tab = ROUTE_MAP[rootPath] || 'main';
+  const id = segments[1] ? decodeURIComponent(segments[1]) : null;
+
+  return { path: rootPath, tab, id };
 };
 
 function AppContent() {
   const { setShowLogo, setShowSearch, setActiveCategory, setSearchQuery } = useHeader();
 
-  // Interceptador para servir feed.xml estático directamente en localhost/desarrollo
+  // Interceptador para servir feed.xml estático
   useEffect(() => {
     const checkFeed = async () => {
       const pathname = window.location.pathname;
@@ -109,7 +124,7 @@ function AppContent() {
           const baseUrl = import.meta.env.BASE_URL.endsWith('/')
             ? import.meta.env.BASE_URL
             : `${import.meta.env.BASE_URL}/`;
-            
+
           const response = await fetch(`${baseUrl}feed.xml`);
           if (response.ok) {
             const xmlText = await response.text();
@@ -126,17 +141,20 @@ function AppContent() {
     checkFeed();
   }, []);
 
-  // Inicialización leyendo la ruta contenida en el hash de la URL
-  const [activeTab, setActiveTabState] = useState(() => {
-    const currentHashPath = getHashPath();
-    return ROUTE_MAP[currentHashPath] || 'main';
+  // 1. Inicialización leyendo la Pestaña e IDs directamente de la URL inicial
+  const [activeTab, setActiveTabState] = useState(() => parseHash().tab);
+
+  const [selectedProjectId, setSelectedProjectId] = useState(() => {
+    const { tab, id } = parseHash();
+    return tab === 'project' ? id : null;
   });
 
-  // Estados globales para los elementos seleccionados
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(() => {
+    const { tab, id } = parseHash();
+    return tab === 'package' ? id : null;
+  });
 
-  // Efecto que actualiza la configuración del Header según el diccionario
+  // Actualiza la configuración del Header según el tab activo
   useEffect(() => {
     const config = PAGE_HEADER_CONFIG[activeTab] || {
       showLogo: true,
@@ -150,23 +168,44 @@ function AppContent() {
     setSearchQuery('');
   }, [activeTab, setShowLogo, setShowSearch, setActiveCategory, setSearchQuery]);
 
-  // Cambia la pestaña y actualiza el Hash de la barra de navegación
-  const setActiveTab = (tabId, shouldPushState = true) => {
+  // 2. Función para cambiar pestaña y actualizar el Hash en la barra de direcciones
+  const setActiveTab = (tabId, idParam = null, shouldPushState = true) => {
     if (tabId === 'packages') {
-      setSelectedPackage(null); // Limpia la selección al volver a la lista general
+      setSelectedPackage(null);
     }
+    if (tabId === 'projects') {
+      setSelectedProjectId(null);
+    }
+
     setActiveTabState(tabId);
+
     if (shouldPushState) {
-      const path = TAB_TO_PATH[tabId] || '/';
+      let path = TAB_TO_PATH[tabId] || '/';
+
+      // Construcción de rutas parametrizadas dinámicas
+      if (tabId === 'project' && idParam) {
+        path = `/project/${encodeURIComponent(idParam)}`;
+      } else if (tabId === 'package' && idParam) {
+        // Acepta ID numérico/slug o la propiedad de objeto si se envía un objeto
+        const pkgId = typeof idParam === 'object' ? (idParam.id || idParam.name) : idParam;
+        path = `/package/${encodeURIComponent(pkgId)}`;
+      }
+
       window.location.hash = path;
     }
   };
 
-  // Escucha los cambios manuales en el hash
+  // 3. Listener para detectar cambios en el hash (atrás/adelante en navegador o entrada directa)
   useEffect(() => {
     const handleHashChange = () => {
-      const currentHashPath = getHashPath();
-      setActiveTabState(ROUTE_MAP[currentHashPath] || 'main');
+      const { tab, id } = parseHash();
+      setActiveTabState(tab);
+
+      if (tab === 'project') {
+        setSelectedProjectId(id);
+      } else if (tab === 'package') {
+        setSelectedPackage(id);
+      }
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -175,35 +214,38 @@ function AppContent() {
 
   const renderPage = () => {
     switch (activeTab) {
-      case 'main': 
+      case 'main':
         return <MainPage setActiveTab={setActiveTab} />;
-      case 'library':
-        return (
-          <MyLibraryPage
-            setActiveTab={setActiveTab}
-            setSelectedProjectId={setSelectedProjectId}
-            setSelectedPackage={setSelectedPackage}
-          />
-        );
-      case 'login': 
+      case 'login':
         return <LoginPage setActiveTab={setActiveTab} />;
-      case 'profile': 
+      case 'profile':
         return <ProfilePage setActiveTab={setActiveTab} />;
+      case 'community': return <CommunityNetworkPage />;
 
-      case 'project-detail':
-        return (
-          <ProjectViewPage
-            projectId={selectedProjectId}
-            setActiveTab={setActiveTab}
-          />
-        );
+      case 'docs': return <DocsPage />;
+      case 'support': return <SupportPage />;
 
       case 'architecture': return <ArchitecturePage />;
       case 'privacy': return <PrivacyPage />;
       case 'terms': return <TermsPage />;
-      case 'docs': return <DocsPage />;
-      case 'support': return <SupportPage />;
-      case 'community': return <CommunityNetworkPage />;
+
+      case 'events':
+        return (
+          <EventsPage
+            setActiveTab={setActiveTab}
+            selectedPackage={selectedPackage}
+            setSelectedPackage={setSelectedPackage}
+          />
+        );
+
+      case 'event-update':
+        return (
+          <EventUploadPage
+            setActiveTab={setActiveTab}
+            selectedPackage={selectedPackage}
+            setSelectedPackage={setSelectedPackage}
+          />
+        );
 
       case 'projects':
         return (
@@ -213,18 +255,28 @@ function AppContent() {
           />
         );
 
-      case 'update-project': 
-        return <ProjectUploadPage setActiveTab={setActiveTab} />;
-      
-      case 'packages': 
+      case 'update-project': return <ProjectUploadPage setActiveTab={setActiveTab} />;
+
+      case 'project':
         return (
-          <PackageRegistryPage 
-            setActiveTab={setActiveTab} 
+          <ProjectViewPage
+            projectId={selectedProjectId}
+            setActiveTab={setActiveTab}
+          />
+        );
+
+
+      case 'packages':
+        return (
+          <PackageRegistryPage
+            setActiveTab={setActiveTab}
             setSelectedPackage={setSelectedPackage}
           />
         );
 
-      case 'package': // Nueva ruta dedicada exclusivamente al detalle
+      case 'package-upload': return <PackageUploadPage setActiveTab={setActiveTab} />;
+
+      case 'package':
         return (
           <PackageDetailPage
             packageData={selectedPackage}
@@ -232,31 +284,20 @@ function AppContent() {
               setSelectedPackage(null);
               setActiveTab('packages');
             }}
+            packagesList={packeagesDataInfo}
           />
         );
-      
-      case 'package-upload': 
-        return <PackageUploadPage setActiveTab={setActiveTab} />;
-      
-      case 'event-update':
+
+      case 'library':
         return (
-          <EventUploadPage
-            setActiveTab={setActiveTab} 
-            selectedPackage={selectedPackage}
+          <MyLibraryPage
+            setActiveTab={setActiveTab}
+            setSelectedProjectId={setSelectedProjectId}
             setSelectedPackage={setSelectedPackage}
           />
         );
-      
-      case 'events':
-        return (
-          <EventsPage
-            setActiveTab={setActiveTab} 
-            selectedPackage={selectedPackage}
-            setSelectedPackage={setSelectedPackage}
-          />
-        );
-      
-      default: 
+
+      default:
         return <NotFoundPage setActiveTab={setActiveTab} />;
     }
   };

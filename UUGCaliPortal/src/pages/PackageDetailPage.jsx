@@ -95,7 +95,14 @@ function MediaItem({
   );
 }
 
-export default function PackageDetailPage({ packageData, onBack }) {
+export default function PackageDetailPage({ packageData, onBack, packagesList = [] }) {
+
+  const activePackage = typeof packageData === 'string'
+    ? packagesList.find(p => p.id === packageData || p.name === packageData)
+    : packageData;
+  
+    if (!activePackage) { return <div>Cargando paquete...</div>; }
+
   const { togglePin, isPinned } = useHeader();
   const [copiedId, setCopiedId] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);

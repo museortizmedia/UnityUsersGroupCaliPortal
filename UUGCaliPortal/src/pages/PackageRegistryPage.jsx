@@ -73,11 +73,13 @@ export default function PackageRegistryPage({
   };
 
   const handleSelectPackage = (pkg) => {
+    const pkgId = pkg.id || pkg.name;
+    
     if (setSelectedPackage) {
       setSelectedPackage(pkg);
     }
     if (setActiveTab) {
-      setActiveTab('package');
+      setActiveTab('package', pkgId);
     }
   };
 

@@ -42,7 +42,7 @@ export default function MyLibraryPage({ setActiveTab, setSelectedProjectId, setS
         setSelectedProjectId(asset.id || asset.name);
       }
       if (typeof setActiveTab === 'function') {
-        setActiveTab('project-detail');
+        setActiveTab('project');
       }
     } else {
       // 1. Buscamos el paquete completo en packagesData usando ID o Nombre

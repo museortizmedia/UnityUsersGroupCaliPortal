@@ -230,7 +230,7 @@ export default function MainPage({ setActiveTab }) {
 
           {topShowcase && (
             <div
-              onClick={() => setActiveTab && setActiveTab('project-detail')}
+              onClick={() => setActiveTab && setActiveTab('project')}
               className="flex-1 relative rounded overflow-hidden group min-h-60 cursor-pointer"
             >
               <div
