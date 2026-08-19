@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /feed.xml
+Allow: /world_map.webp
+
+# Permitir recursos esenciales para renderizado e indexación
+Allow: /*.js
+Allow: /*.css
+Allow: /*.json
+
+# Secciones privadas de la app
+Disallow: /#/profile
+Disallow: /#/library
+
+# Mapa del sitio oficial
+Sitemap: https://museortizmedia.github.io/UnityUsersGroupCaliPortal/sitemap.xml
