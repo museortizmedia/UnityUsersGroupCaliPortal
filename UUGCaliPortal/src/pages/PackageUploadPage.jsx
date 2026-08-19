@@ -144,15 +144,20 @@ export default function PackageUploadPage() {
     setStatusMsg({ type: '', text: '' });
   };
 
-  // Fecha en formato ISO (YYYY-MM-DD)
-const todayDate = new Date().toISOString().split('T')[0];
-
-// O fecha formateada en español (ej. "19 ago 2026")
-const formattedDate = new Date().toLocaleDateString('es-CO', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
-});
+  const now = new Date();
+  // Extrae las partes en la zona horaria de Colombia
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(now).reduce((acc, part) => ({ ...acc, [part.type]: part.value }), {});
+  // Ensambla el string ISO manualmente con la 'Z' al final
+  const todayDate = `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}.000Z`;
 
   // Guardar (Crear o Actualizar) en estado local
   const handleSavePackage = (e) => {
@@ -171,7 +176,7 @@ const formattedDate = new Date().toLocaleDateString('es-CO', {
       category: formData.category,
       version: formData.version || 'v1.0.0',
       downloads: formData.downloads || '0',
-      lastUpdated: currentDate,
+      lastUpdated: todayDate,
       gitUrl: formData.gitUrl,
       unityVersion: formData.unityVersion || '2022.3 LTS+',
       author: formData.author || 'Comunidad',
@@ -305,13 +310,12 @@ const formattedDate = new Date().toLocaleDateString('es-CO', {
       {/* Alertas */}
       {statusMsg.text && (
         <div
-          className={`mb-6 p-4 rounded-xl border flex items-center justify-between font-['Inter'] text-sm ${
-            statusMsg.type === 'error'
+          className={`mb-6 p-4 rounded-xl border flex items-center justify-between font-['Inter'] text-sm ${statusMsg.type === 'error'
               ? 'bg-red-50 border-red-200 text-red-700'
               : statusMsg.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : 'bg-blue-50 border-blue-200 text-blue-800'
-          }`}
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                : 'bg-blue-50 border-blue-200 text-blue-800'
+            }`}
         >
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined">
@@ -579,9 +583,8 @@ const formattedDate = new Date().toLocaleDateString('es-CO', {
                     return (
                       <div
                         key={item.id}
-                        className={`bg-white/60 border rounded-xl overflow-hidden transition-all ${
-                          isBeingEdited ? 'border-black ring-1 ring-black' : 'border-black/10'
-                        }`}
+                        className={`bg-white/60 border rounded-xl overflow-hidden transition-all ${isBeingEdited ? 'border-black ring-1 ring-black' : 'border-black/10'
+                          }`}
                       >
                         {/* Cabecera del Acordeón */}
                         <div
