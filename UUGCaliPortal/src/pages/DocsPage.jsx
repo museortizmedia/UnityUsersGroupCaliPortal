@@ -3,70 +3,80 @@ import React, { useState } from 'react';
 export default function DocsPage() {
   const [activeTab, setActiveTab] = useState('community'); // 'community' | 'showcase' | 'submit'
 
-  // Estado del formulario de envío
+  // URL del formulario final
+  const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfAQU2x6kMtVS72Qowq_dH53ndLpcbQmeabKPXZnGZGbK9srQ/viewform?usp=publish-editor";
+
+  // Estado para el formulario preliminar interactivo
   const [formData, setFormData] = useState({
-    title: '',
-    type: 'package', // 'package' | 'project'
-    author: '',
-    repositoryUrl: '',
-    demoUrl: '',
-    description: '',
-    tags: ''
+    resourceType: 'project', // 'project' | 'package'
+    gitUrl: '',
+    projectUrl: '',
+    location: 'cali', // 'cali' | 'valle' | 'other'
+    otherLocationName: '',
+    email: '',
+    noBadContent: false,
+    noMalware: false,
+    termsAccepted: false
   });
-  
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
+
+  const [formErrors, setFormErrors] = useState([]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
-  const handleSubmit = async (e) => {
+  const validateAndSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setErrorMsg(null);
+    const errors = [];
 
-    try {
-      const response = await fetch("https://formsubmit.co/ajax/museortiz@gmail.com", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({
-          _subject: `[UUG Cali] Nueva publicación: ${formData.title}`,
-          _template: "table",
-          ...formData
-        })
-      });
-
-      if (response.ok) {
-        setSubmitted(true);
-      } else {
-        setErrorMsg("Hubo un problema al procesar el envío. Inténtalo de nuevo.");
+    // Validar Package / Git URL
+    if (formData.resourceType === 'package') {
+      const isGit = formData.gitUrl.includes('github.com') || 
+                    formData.gitUrl.includes('gitlab.com') || 
+                    formData.gitUrl.includes('bitbucket.org') ||
+                    formData.gitUrl.endsWith('.git');
+      if (!formData.gitUrl.trim()) {
+        errors.push("Debes proporcionar el enlace al repositorio Git.");
+      } else if (!isGit) {
+        errors.push("Para paquetes/librerías debe ser un enlace directo a un repositorio Git público (GitHub, GitLab, Bitbucket, etc.), no una versión publicada.");
       }
-    } catch (error) {
-      console.error("Error al enviar el formulario:", error);
-      setErrorMsg("Error de red al conectar con el servicio de correo.");
-    } finally {
-      setLoading(false);
     }
-  };
 
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      type: 'package',
-      author: '',
-      repositoryUrl: '',
-      demoUrl: '',
-      description: '',
-      tags: ''
-    });
-    setSubmitted(false);
-    setErrorMsg(null);
+    // Validar Proyecto URL
+    if (formData.resourceType === 'project' && !formData.projectUrl.trim()) {
+      errors.push("Debes proporcionar el enlace a la página o ejecutable de tu proyecto.");
+    }
+
+    // Validaciones de Contenido y Malware para proyectos
+    if (formData.resourceType === 'project') {
+      if (!formData.noBadContent) {
+        errors.push("Debes confirmar que el proyecto no contiene violencia extrema, sexo o discriminación.");
+      }
+      if (!formData.noMalware) {
+        errors.push("Debes declarar que el archivo/ejecutable está libre de virus o malware.");
+      }
+    }
+
+    // Validar Correo
+    if (!formData.email.trim() || !formData.email.includes('@')) {
+      errors.push("Debes ingresar un correo electrónico válido para contacto.");
+    }
+
+    // Validar Términos
+    if (!formData.termsAccepted) {
+      errors.push("Debes aceptar las condiciones de evaluación.");
+    }
+
+    setFormErrors(errors);
+
+    if (errors.length === 0) {
+      // Redirigir al formulario de Google Forms
+      window.open(GOOGLE_FORM_URL, '_blank');
+    }
   };
 
   return (
@@ -130,7 +140,6 @@ export default function DocsPage() {
       {/* SECCIÓN 1: SOBRE EL GRUPO DE USUARIOS DE UNITY */}
       {activeTab === 'community' && (
         <div className="space-y-6 animate-fadeIn">
-          {/* Card Principal: Propósito */}
           <div className="bg-white p-6 md:p-8 rounded-xl border border-black/5 shadow-sm space-y-4">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-black text-2xl">diversity_3</span>
@@ -143,7 +152,6 @@ export default function DocsPage() {
             </p>
           </div>
 
-          {/* Grid de Pilares / Encuentros */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white p-6 rounded-xl border border-black/5 space-y-3 shadow-sm">
               <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center">
@@ -246,168 +254,233 @@ export default function DocsPage() {
         </div>
       )}
 
-      {/* SECCIÓN 3: FORMULARIO DE PUBLICACIÓN */}
+      {/* SECCIÓN 3: ENCUESTA Y FORMULARIO PRELIMINAR */}
       {activeTab === 'submit' && (
-        <div className="max-w-3xl mx-auto animate-fadeIn">
-          {submitted ? (
-            <div className="bg-white border border-emerald-500/30 rounded-xl p-8 text-center space-y-4 shadow-sm">
-              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                <span className="material-symbols-outlined text-3xl">check_circle</span>
-              </div>
-              <h2 className="font-['Space_Grotesk'] text-2xl font-bold text-black">
-                ¡Registro Enviado!
+        <div className="max-w-3xl mx-auto animate-fadeIn space-y-6">
+          <div className="bg-white border border-black/10 rounded-xl p-6 md:p-8 space-y-6 shadow-sm">
+            
+            <div className="border-b border-black/10 pb-4">
+              <h2 className="font-['Space_Grotesk'] text-2xl font-bold text-black flex items-center gap-2">
+                <span className="material-symbols-outlined">assignment</span>
+                Formulario de Postulación de Recurso
               </h2>
-              <p className="font-['Inter'] text-xs text-[#45464d] max-w-md mx-auto">
-                Tu proyecto/paquete <strong>"{formData.title}"</strong> ha sido registrado. Un organizador revisará la información antes de integrarlo al catálogo.
+              <p className="font-['Inter'] text-xs text-[#45464d] mt-1">
+                Completa los datos y verifica las políticas antes de acceder al formulario oficial de envío.
               </p>
-              <button
-                onClick={resetForm}
-                className="bg-black text-white px-5 py-2.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors cursor-pointer"
-              >
-                Enviar Otro Elemento
-              </button>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="bg-white border border-black/5 rounded-xl p-6 md:p-8 space-y-6 shadow-sm">
-              <div className="border-b border-black/5 pb-4">
-                <h2 className="font-['Space_Grotesk'] text-xl font-bold text-black">
-                  Publicar Proyecto o Paquete Git
-                </h2>
-                <p className="font-['JetBrains_Mono'] text-xs text-[#45464d] mt-0.5">
-                  Formulario directo para desarrolladores de la comunidad Unity.
-                </p>
+
+            <form onSubmit={validateAndSubmit} className="space-y-6">
+              
+              {/* 1. Tipo de Recurso */}
+              <div className="space-y-2">
+                <label className="font-['Space_Grotesk'] font-bold text-sm text-black block">
+                  1. ¿Qué tipo de recurso deseas postular?
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className={`p-4 border rounded-lg cursor-pointer flex items-center gap-3 transition-all ${
+                    formData.resourceType === 'project' ? 'border-black bg-black/5 font-bold' : 'border-black/10 hover:border-black/30'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="resourceType"
+                      value="project"
+                      checked={formData.resourceType === 'project'}
+                      onChange={handleInputChange}
+                      className="accent-black"
+                    />
+                    <div>
+                      <span className="block text-xs font-['Space_Grotesk'] text-black">Proyecto / Juego / Experiencia</span>
+                      <span className="block text-[11px] font-normal text-[#45464d]">Build, juego o ejecutable</span>
+                    </div>
+                  </label>
+
+                  <label className={`p-4 border rounded-lg cursor-pointer flex items-center gap-3 transition-all ${
+                    formData.resourceType === 'package' ? 'border-black bg-black/5 font-bold' : 'border-black/10 hover:border-black/30'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="resourceType"
+                      value="package"
+                      checked={formData.resourceType === 'package'}
+                      onChange={handleInputChange}
+                      className="accent-black"
+                    />
+                    <div>
+                      <span className="block text-xs font-['Space_Grotesk'] text-black">Package / Librería de Unity</span>
+                      <span className="block text-[11px] font-normal text-[#45464d]">Código reusable / UPM</span>
+                    </div>
+                  </label>
+                </div>
               </div>
 
-              {errorMsg && (
-                <div className="bg-red-50 border border-red-200 text-red-600 rounded p-3 text-xs font-['Inter']">
-                  {errorMsg}
+              {/* 2. URL del Recurso */}
+              <div className="space-y-2">
+                <label className="font-['Space_Grotesk'] font-bold text-sm text-black block">
+                  2. Enlace del {formData.resourceType === 'package' ? 'Repositorio Git' : 'Proyecto'}
+                </label>
+                
+                {formData.resourceType === 'package' ? (
+                  <div>
+                    <input
+                      type="url"
+                      name="gitUrl"
+                      placeholder="https://github.com/usuario/mi-paquete-unity.git"
+                      value={formData.gitUrl}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-black/15 rounded-lg text-xs font-['JetBrains_Mono'] focus:outline-none focus:border-black"
+                    />
+                    <p className="text-[11px] text-[#45464d] mt-1.5 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-xs text-amber-600">info</span>
+                      Debe ser un enlace público a Git (GitHub, GitLab, Bitbucket). No se aceptan paquetes ya publicados (Asset Store, NPM) ni archivos sueltos.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="url"
+                      name="projectUrl"
+                      placeholder="https://itch.io/mi-juego o enlace a landing / demo"
+                      value={formData.projectUrl}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border border-black/15 rounded-lg text-xs font-['JetBrains_Mono'] focus:outline-none focus:border-black"
+                    />
+                    <p className="text-[11px] text-[#45464d] mt-1.5">
+                      Enlace donde se pueda visualizar o probar la experiencia.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Ubicación Geográfica */}
+              <div className="space-y-2">
+                <label className="font-['Space_Grotesk'] font-bold text-sm text-black block">
+                  3. Ubicación del Desarrollador / Equipo
+                </label>
+                <select
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-black/15 rounded-lg text-xs font-['Inter'] focus:outline-none focus:border-black bg-white"
+                >
+                  <option value="cali">Santiago de Cali, Colombia</option>
+                  <option value="valle">Otro municipio del Valle del Cauca</option>
+                  <option value="other">Fuera del Valle del Cauca / Internacional</option>
+                </select>
+
+                {formData.location === 'valle' && (
+                  <input
+                    type="text"
+                    name="otherLocationName"
+                    placeholder="Especifica el municipio (ej: Palmira, Jamundí, Buga...)"
+                    value={formData.otherLocationName}
+                    onChange={handleInputChange}
+                    className="w-full p-2.5 mt-2 border border-black/15 rounded-lg text-xs font-['Inter'] focus:outline-none focus:border-black"
+                  />
+                )}
+
+                {formData.location === 'other' && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800 flex items-start gap-2">
+                    <span className="material-symbols-outlined text-sm shrink-0 mt-0.5">warning</span>
+                    <span>Priorizamos iniciativas locales. Las postulaciones fuera del Valle del Cauca quedan sujetas a revisión de cupos y disponibilidad por parte del comité evaluador.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 4. Correo de Contacto */}
+              <div className="space-y-2">
+                <label className="font-['Space_Grotesk'] font-bold text-sm text-black block">
+                  4. Correo electrónico de contacto
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="tu.correo@ejemplo.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border border-black/15 rounded-lg text-xs font-['Inter'] focus:outline-none focus:border-black"
+                />
+              </div>
+
+              {/* 5. Reglas de Contenido y Seguridad (Solo para Proyectos) */}
+              {formData.resourceType === 'project' && (
+                <div className="p-4 bg-black/5 rounded-lg border border-black/10 space-y-3">
+                  <span className="font-['JetBrains_Mono'] text-[11px] font-bold text-black uppercase block">
+                    Declaraciones de Contenido e Integridad
+                  </span>
+                  
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs font-['Inter'] text-[#45464d]">
+                    <input
+                      type="checkbox"
+                      name="noBadContent"
+                      checked={formData.noBadContent}
+                      onChange={handleInputChange}
+                      className="mt-0.5 accent-black shrink-0"
+                    />
+                    <span>Confirmo que el proyecto <strong>NO contiene</strong> violencia extrema o explícita, contenido sexual/NSFW, discursos de odio ni discriminación de ningún tipo.</span>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs font-['Inter'] text-[#45464d]">
+                    <input
+                      type="checkbox"
+                      name="noMalware"
+                      checked={formData.noMalware}
+                      onChange={handleInputChange}
+                      className="mt-0.5 accent-black shrink-0"
+                    />
+                    <span>Declaro que el archivo ejecutable o contenido descargable está completamente libre de virus, malware o scripts perjudiciales.</span>
+                  </label>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nombre */}
-                <div className="space-y-1">
-                  <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
-                    Nombre del Elemento *
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    required
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="Ej. Cali Interactive Map / URP Utils"
-                    className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['Inter'] focus:outline-none focus:border-black"
-                  />
-                </div>
-
-                {/* Tipo */}
-                <div className="space-y-1">
-                  <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
-                    Tipo de Publicación *
-                  </label>
-                  <select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleInputChange}
-                    className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['Inter'] focus:outline-none focus:border-black cursor-pointer"
-                  >
-                    <option value="package">Paquete Git / UPM (Para Devs)</option>
-                    <option value="project">Proyecto Unity (Showcase Local)</option>
-                  </select>
-                </div>
-
-                {/* Autor */}
-                <div className="space-y-1">
-                  <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
-                    Creador / Equipo *
-                  </label>
-                  <input
-                    type="text"
-                    name="author"
-                    required
-                    value={formData.author}
-                    onChange={handleInputChange}
-                    placeholder="Tu nombre o estudio local"
-                    className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['Inter'] focus:outline-none focus:border-black"
-                  />
-                </div>
-
-                {/* URL Git / Repo */}
-                <div className="space-y-1">
-                  <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
-                    Enlace Git / Repositorio *
-                  </label>
-                  <input
-                    type="url"
-                    name="repositoryUrl"
-                    required
-                    value={formData.repositoryUrl}
-                    onChange={handleInputChange}
-                    placeholder="https://github.com/usuario/mi-repo.git"
-                    className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['JetBrains_Mono'] focus:outline-none focus:border-black"
-                  />
-                </div>
-              </div>
-
-              {/* URL Demo (Opcional) */}
-              <div className="space-y-1">
-                <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
-                  URL de Demo o WebGL (Opcional)
-                </label>
-                <input
-                  type="url"
-                  name="demoUrl"
-                  value={formData.demoUrl}
-                  onChange={handleInputChange}
-                  placeholder="https://itch.io / https://mi-demo.com"
-                  className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['JetBrains_Mono'] focus:outline-none focus:border-black"
-                />
-              </div>
-
-              {/* Descripción */}
-              <div className="space-y-1">
-                <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
-                  Descripción Corta *
-                </label>
-                <textarea
-                  name="description"
-                  required
-                  rows={3}
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Explica de qué trata tu juego/proyecto o qué resuelve tu paquete de Unity..."
-                  className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['Inter'] focus:outline-none focus:border-black"
-                />
-              </div>
-
-              {/* Etiquetas */}
-              <div className="space-y-1">
-                <label className="font-['JetBrains_Mono'] text-xs text-black font-bold uppercase">
-                  Etiquetas (separadas por comas)
-                </label>
-                <input
-                  type="text"
-                  name="tags"
-                  value={formData.tags}
-                  onChange={handleInputChange}
-                  placeholder="3d, indie, upm, ui"
-                  className="w-full bg-black/5 border border-black/10 rounded px-3 py-2 text-xs font-['JetBrains_Mono'] focus:outline-none focus:border-black"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-black text-white py-3 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                <span>{loading ? 'Enviando...' : 'Enviar Publicación'}</span>
-                <span className="material-symbols-outlined text-sm">
-                  {loading ? 'hourglass_top' : 'send'}
+              {/* 6. Aceptación de Términos de Evaluación */}
+              <div className="p-4 bg-white border border-black/15 rounded-lg space-y-2">
+                <span className="font-['JetBrains_Mono'] text-[11px] font-bold text-black uppercase block flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">gavel</span>
+                  Términos del Proceso de Evaluación
                 </span>
-              </button>
+                <ul className="text-[11px] text-[#45464d] space-y-1 list-disc pl-4 font-['Inter']">
+                  <li>El envío de la postulación <strong>NO garantiza</strong> la publicación inmediata.</li>
+                  <li>Un equipo evalúa la solicitud y puede ponerse en contacto vía correo electrónico para solicitar aclaraciones o ajustes.</li>
+                </ul>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-['Inter'] text-black font-semibold pt-2 border-t border-black/5 mt-2">
+                  <input
+                    type="checkbox"
+                    name="termsAccepted"
+                    checked={formData.termsAccepted}
+                    onChange={handleInputChange}
+                    className="accent-black shrink-0"
+                  />
+                  <span>Comprendo y acepto los términos de evaluación y publicación.</span>
+                </label>
+              </div>
+
+              {/* Lista de Errores */}
+              {formErrors.length > 0 && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg space-y-1">
+                  {formErrors.map((err, idx) => (
+                    <p key={idx} className="text-xs text-red-600 font-['Inter'] flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-sm">error</span>
+                      {err}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              {/* Botón Submit / Ir al Formulario */}
+              <div className="pt-2 text-center">
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto bg-black text-white px-8 py-3.5 rounded font-['JetBrains_Mono'] text-xs uppercase tracking-widest hover:bg-black/80 transition-all shadow-md inline-flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Validar y Abrir Formulario Oficial</span>
+                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                </button>
+              </div>
+
             </form>
-          )}
+
+          </div>
         </div>
       )}
     </div>

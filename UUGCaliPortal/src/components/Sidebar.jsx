@@ -127,20 +127,20 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen }) {
           {/* Enlaces de soporte/docs */}
           <div className="px-6 space-y-2 border-t border-black/5 pt-4">
             <button
-              onClick={() => setActiveTab('support')}
-              className={`flex items-center gap-3 w-full text-left transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === 'support' ? 'text-black font-bold' : 'text-[#45464d] hover:text-black'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[16px]">help</span> Support
-            </button>
-            <button
               onClick={() => setActiveTab('docs')}
               className={`flex items-center gap-3 w-full text-left transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === 'docs' ? 'text-black font-bold' : 'text-[#45464d] hover:text-black'
               }`}
             >
               <span className="material-symbols-outlined text-[16px]">description</span> Docs
+            </button>
+                        <button
+              onClick={() => setActiveTab('support')}
+              className={`flex items-center gap-3 w-full text-left transition-all whitespace-nowrap cursor-pointer ${
+                activeTab === 'support' ? 'text-black font-bold' : 'text-[#45464d] hover:text-black'
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">help</span> Support
             </button>
           </div>
         </div>
