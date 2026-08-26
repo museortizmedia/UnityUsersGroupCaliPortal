@@ -13,7 +13,7 @@ export default function Header({ setActiveTab, toggleSidebar, isSidebarOpen }) {
 
   const { isLoggedIn } = useAuth();
   const inputRef = useRef(null);
-  
+
   // Estado para controlar la barra expandida en móviles
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
@@ -31,7 +31,7 @@ export default function Header({ setActiveTab, toggleSidebar, isSidebarOpen }) {
           if (window.innerWidth < 768) {
             setIsMobileSearchOpen(true);
           }
-          
+
           // Enfocar inmediatamente el input en cualquier resolución a la primera
           requestAnimationFrame(() => {
             inputRef.current?.focus();
@@ -104,11 +104,12 @@ export default function Header({ setActiveTab, toggleSidebar, isSidebarOpen }) {
             {/* LADO IZQUIERDO: Logo */}
             <div className="flex items-center shrink-0">
               {showLogo && (
-                <div onClick={() => setActiveTab('main')} className="cursor-pointer select-none">
-                  <div className="font-['Space_Grotesk'] text-xl sm:text-2xl tracking-tighter text-black font-bold whitespace-nowrap">
-                    UUG Cali
-                  </div>
-                </div>
+                <button
+                  onClick={() => setActiveTab?.('main')}
+                  className="font-['Space_Grotesk'] text-2xl font-bold text-black mb-2 hover:opacity-80 transition-opacity cursor-pointer inline-block md:block"
+                >
+                  UUG Cali
+                </button>
               )}
             </div>
 
@@ -119,7 +120,7 @@ export default function Header({ setActiveTab, toggleSidebar, isSidebarOpen }) {
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-black/40 group-focus-within:text-black text-xl pointer-events-none transition-colors duration-200">
                     search
                   </span>
-                  
+
                   <input
                     ref={inputRef}
                     type="text"
@@ -153,11 +154,10 @@ export default function Header({ setActiveTab, toggleSidebar, isSidebarOpen }) {
                     return (
                       <span
                         key={category}
-                        className={`py-1 px-2 rounded-md transition-colors ${
-                          isActive
+                        className={`py-1 px-2 rounded-md transition-colors ${isActive
                             ? 'text-black font-bold border-b-2 border-black'
                             : 'text-[#45464d] font-medium'
-                        }`}
+                          }`}
                       >
                         {category}
                       </span>
