@@ -52,26 +52,34 @@
   {
     "id": "2026-3",
     "title": "Showcase Day 2026",
-    "date": "31 AGO 2026",
+    "date": "16 SEP 2026",
     "time": "",
-    "location": "",
+    "location": "Universidad San Buenaventura",
     "description": "¡Día donde los miembros muestran sus demos y proyetos jugables! Pizza y mucha diversión.",
+    "rsvpUrl": "",
+    "buttonText": "Confirmar Asistencia",
     "featured": true
   },
   {
     "id": "2026-4",
     "title": "Pitch Day 2026",
-    "date": "04 SEP 2026",
+    "date": "25 NOV 2026",
     "time": "",
     "location": "",
-    "description": "Mostremos el resultado final del Cali Challenge 2026"
+    "description": "Mostremos el resultado final del Cali Challenge 2026",
+    "rsvpUrl": "",
+    "buttonText": "Confirmar Asistencia",
+    "featured": false
   },
   {
     "id": "2026-5",
-    "title": "Year Open Showcase 2026",
-    "date": "05 NOV 2026",
+    "title": "Cali Challenge 2026: Open Showcase",
+    "date": "22 DIC 2026",
     "time": "",
     "location": "",
-    "description": "Showcase abierto al público para hbalar de los proyectos y el impacto en la ciudad de Cali"
+    "description": "Showcase abierto al público para hbalar de los proyectos y el impacto en la ciudad de Cali",
+    "rsvpUrl": "",
+    "buttonText": "Confirmar Asistencia",
+    "featured": false
   }
 ]
